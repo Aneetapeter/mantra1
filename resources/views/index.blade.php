@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:100,200,300,400,500,600,700,800,900" rel="stylesheet">
+
+  <title>MANTRA</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Additional CSS Files -->
+  <link rel="stylesheet" href="{{ asset('css/fontawesome.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/mantra.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/owl.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/lightbox.css') }}">
+
+</head>
+
+<body>
+
+
+  <!--header-->
+  <header class="main-header clearfix" role="header">
+    <div class="logo">
+      <a href="#" style="display: flex; align-items: center;">
+        <img src="{{ asset('images/mantra.png') }}" alt="Mantra Logo" style="height: 50px; margin-right: 15px;">
+        <div style="text-align: left;">
+          <em>MANTRA</em>
+          <span class="tagline">Study. Focus. Achieve</span>
+        </div>
+      </a>
+    </div>
+    <a href="#menu" class="menu-link"><i class="fa fa-bars"></i></a>
+    <nav id="menu" class="main-nav" role="navigation">
+      <ul class="main-menu">
+        <li><a href="#section1">Home</a></li>
+        <li class="has-submenu"><a href="#section2">About Us</a>
+          <ul class="sub-menu">
+            <li><a href="#section2">What is it?</a></li>
+            <li><a href="#section3">How?</a></li>
+            <li><a href="#section6">Where?</a></li>
+          </ul>
+        </li>
+
+        <li><a href="#section4">Courses</a></li>
+
+        <!-- AUTH BASED MENU -->
+        @auth
+          <li><a href="{{ route('dashboard.intro') }}">Dashboard</a></li>
+          <li>
+            <a href="{{ route('logout') }}"
+              onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+              Logout
+            </a>
+          </li>
+          <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+            @csrf
+          </form>
+        @else
+          <li><a href="{{ route('login') }}">Login</a></li>
+          <li><a href="{{ route('register') }}">Register</a></li>
+        @endauth
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ***** Main Banner Area Start ***** -->
+  <section class="section main-banner" id="top" data-section="section1">
+    <video autoplay muted loop id="bg-video">
+      <source src="images/course-video.mp4" type="video/mp4" />
+    </video>
+
+    <div class="video-overlay header-text">
+      <div class="caption">
+        <h6>Manage your School!</h6>
+        <h2><em>MANTRA</em> Your Classroom</h2>
+        <div class="main-button">
+          <div class="scroll-to-section"><a href="#section2">Discover more</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- ***** Main Banner Area End ***** -->
+
+
+  <section class="features">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4 col-12">
+          <div class="features-post">
+            <div class="features-content">
+              <div class="content-show">
+                <h4><i class="fa fa-pencil"></i>what you do?</h4>
+              </div>
+              <div class="content-hide">
+                <p>Add your courses, upload your textbooks or notes, highlight and study your way. Mood off? MANTRA
+                  has your back — it picks the perfect topic or video for you, so learning always flows with your vibe.
+                </p>
+                <p class="hidden-sm">Add your courses, upload your textbooks or notes, highlight and study your way.
+                  Mood off? MANTRA has your back — it picks the perfect topic or video for you, so learning always flows
+                  with your vibe.
+                </p>
+                <div class="scroll-to-section"><a href="#section2">More Info.</a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4 col-12">
+          <div class="features-post second-features">
+            <div class="features-content">
+              <div class="content-show">
+                <h4><i class="fa fa-graduation-cap"></i>Virtual Class</h4>
+              </div>
+              <div class="content-hide">
+                <p>MANTRA is a virtual classroom that puts you in control of your learning. With MANTRA, you can
+                  study at your own pace, on your own schedule, and in the comfort of your own home.</p>
+                <p class="hidden-sm">MANTRA is a virtual classroom that puts you in control of your learning. With
+                  MANTRA, you can
+                  study at your own pace, on your own schedule, and in the comfort of your own home.</p>
+                <div class="scroll-to-section"><a href="#section3">Details</a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4 col-12">
+          <div class="features-post third-features">
+            <div class="features-content">
+              <div class="content-show">
+                <h4><i class="fa fa-book"></i>Study Time </h4>
+              </div>
+              <div class="content-hide">
+                <p>Set your study time — even 5 minutes counts! Play games, explore mind maps, and make learning fun.
+                  MANTRA turns every study session into a focus-powered, mood-friendly experience.</p>
+                <p class="hidden-sm">Set your study time — even 5 minutes counts! Play games, explore mind maps, and
+                  make learning fun. MANTRA turns every study session into a focus-powered, mood-friendly experience.
+                </p>
+                <div class="scroll-to-section"><a href="#section4">Read More</a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section why-us" data-section="section2">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="section-heading">
+            <h2>Why choose MANTRA?</h2>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div id='tabs'>
+            <ul>
+              <li><a href='#tabs-1'>Your Way</a></li>
+              <li><a href='#tabs-2'>Your Time</a></li>
+              <li><a href='#tabs-3'>Your Fun</a></li>
+            </ul>
+            <section class='tabs-content'>
+              <article id='tabs-1'>
+                <div class="row">
+                  <div class="col-md-6">
+                    <img src="images/mantra.png" alt="">
+                  </div>
+                  <div class="col-md-6">
+                    <h4>Your Way</h4>
+                    <p>MANTRA puts you in control of your learning. With MANTRA, you can study at your own pace, on your
+                      own schedule, and in the comfort of your own home.</p>
+                  </div>
+                </div>
+              </article>
+              <article id='tabs-2'>
+                <div class="row">
+                  <div class="col-md-6">
+                    <img src="images/mantra.png" alt="">
+                  </div>
+                  <div class="col-md-6">
+                    <h4>Your Time</h4>
+                    <p>Take control of your study time. With MANTRA, even 5 minutes can be powerful — play games,
+                      explore mind maps, and learn at your own pace, whenever and wherever you want.</p>
+                  </div>
+                </div>
+              </article>
+              <article id='tabs-3'>
+                <div class="row">
+                  <div class="col-md-6">
+                    <img src="images/mantra.png" alt="">
+                  </div>
+                  <div class="col-md-6">
+                    <h4>Your Fun</h4>
+                    <p>MANTRA turns every study session into a focus-powered, mood-friendly experience. Play games,
+                      explore mind maps, and make learning fun.</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section coming-soon" data-section="section3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-7 col-xs-12">
+          <div class="continer centerIt">
+            <div>
+              <h4>Add your <em>course</em> and start learning!</h4>
+              <div class="counter">
+
+                <div class="days">
+                  <div class="value">00</div>
+                  <span>Days</span>
+                </div>
+
+                <div class="hours">
+                  <div class="value">00</div>
+                  <span>Hours</span>
+                </div>
+
+                <div class="minutes">
+                  <div class="value">00</div>
+                  <span>Minutes</span>
+                </div>
+
+                <div class="seconds">
+                  <div class="value">00</div>
+                  <span>Seconds</span>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="right-content">
+            <div class="top-content">
+              <h6>Register your free account and <em>get immediate</em> access to your classroom!</h6>
+            </div>
+            <form id="registration-form" action="" method="post">
+              @csrf
+              <div class="row">
+                <div class="col-md-12">
+                  <fieldset>
+                    <input name="name" type="text" class="form-control" id="reg-name" placeholder="Your Name"
+                      required="">
+                  </fieldset>
+                </div>
+                <div class="col-md-12">
+                  <fieldset>
+                    <input name="email" type="email" class="form-control" id="reg-email" placeholder="Your Email"
+                      required="">
+                  </fieldset>
+                </div>
+                <div class="col-md-12">
+                  <fieldset>
+                    <input name="password" type="password" class="form-control" id="reg-password"
+                      placeholder="Your Password" required="">
+                  </fieldset>
+                </div>
+                <div class="col-md-12">
+                  <fieldset>
+                    <button type="submit" id="form-submit" class="button">Register Now</button>
+                  </fieldset>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section courses" data-section="section4">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="section-heading">
+            <h2>Start journey</h2>
+          </div>
+        </div>
+        <div class="owl-carousel owl-theme course-slider">
+          <div class="item">
+            <img src="images/courses-01.jpg" alt="Bro Code">
+            <div class="down-content">
+              <h4>Bro Code</h4>
+              <p>Coding tutorials on Python, Java, C#, C++, JavaScript, HTML, CSS, React, and more. Simple and easy to
+                understand.</p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-02.jpg" alt="FreeCodeCamp">
+            <div class="down-content">
+              <h4>freeCodeCamp.org</h4>
+              <p>Learn to code for free. Build projects. Earn certifications. One of the best resources for web
+                development.</p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-03.jpg" alt="CrashCourse">
+            <div class="down-content">
+              <h4>CrashCourse</h4>
+              <p>Tons of awesome courses in one awesome channel! History, Science, Literature, Psychology, and more.</p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-04.jpg" alt="Khan Academy">
+            <div class="down-content">
+              <h4>Khan Academy</h4>
+              <p>A nonprofit with the mission to provide a free, world-class education for anyone, anywhere. Math,
+                science, and more.</p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-05.jpg" alt="Traversy Media">
+            <div class="down-content">
+              <h4>Traversy Media</h4>
+              <p>Web development tutorials for all latest web technologies including React, Vue, Angular, Node.js and
+                more.</p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-01.jpg" alt="Coursera">
+            <div class="down-content">
+              <h4>Coursera</h4>
+              <p>Learn from the world's best universities and companies. Expand your knowledge and advance your career.
+              </p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-02.jpg" alt="Edureka">
+            <div class="down-content">
+              <h4>Edureka!</h4>
+              <p>Instructor-led live online training on trending technologies like DevOps, Big Data, Data Science, and
+                more.</p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-03.jpg" alt="CS50">
+            <div class="down-content">
+              <h4>CS50</h4>
+              <p>Harvard University's introduction to the intellectual enterprises of computer science and the art of
+                programming.</p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-04.jpg" alt="Ted-Ed">
+            <div class="down-content">
+              <h4>TED-Ed</h4>
+              <p>TED's youth and education initiative. Short, award-winning animated lessons on various curious topics.
+              </p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-05.jpg" alt="Physics Wallah">
+            <div class="down-content">
+              <h4>Physics Wallah</h4>
+              <p>One of India's most loved education platforms. Best for 10th, 12th Boards, JEE, and NEET preparation.
+              </p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-01.jpg" alt="Unacademy">
+            <div class="down-content">
+              <h4>Unacademy</h4>
+              <p>Comprehensive exam preparation for CBSE Class 6-12, JEE, NEET, UPSC, and more with top educators.
+              </p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-02.jpg" alt="Vedantu">
+            <div class="down-content">
+              <h4>Vedantu</h4>
+              <p>Interactive online classes for Grades 6-12, JEE, NEET. Known for LIVE interactive classes and
+                specialized content.
+              </p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <img src="images/courses-03.jpg" alt="LearnOHub">
+            <div class="down-content">
+              <h4>LearnOHub - Class 11 & 12</h4>
+              <p>Free education revolution (formerly ExamFear). Math, Physics, Chemistry, Biology concepts made
+                ridiculously simple.
+              </p>
+              <div class="text-button-free">
+                <a href="{{ route('watch.redirect') }}">Watch <i class="fa fa-angle-double-right"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="section video" data-section="section5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 align-self-center">
+          <div class="left-content">
+            <span>our presentation is for you</span>
+            <h4>Watch the video to learn more <em>about Mantra</em></h4>
+            <p>Mantra is a platform that helps you to manage your studies.
+              You may <a rel="nofollow" href="https://www.linkedin.com/in/aneeta-peter-1499a3364/?originalSubdomain=in"
+                target="_blank">contact Mantra</a>
+              for details.
+              <br><br>For more information, please visit our <a
+                href="https://www.linkedin.com/in/aneeta-peter-1499a3364/?originalSubdomain=in"
+                target="_blank">website</a>.
+            </p>
+            <div class="main-button"><a rel="nofollow"
+                href="https://www.linkedin.com/in/aneeta-peter-1499a3364/?originalSubdomain=in" target="_blank">External
+                URL</a></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <article class="video-item">
+            <div class="video-caption">
+              <h4><a href="https://www.youtube.com/watch?v=w_zUv4MlrOk" class="play"
+                  style="color: black; text-decoration: none;">Mantra</a></h4>
+            </div>
+            <figure>
+              <a href="https://www.youtube.com/watch?v=w_zUv4MlrOk" class="play"><img src="images/main-thumb.png"></a>
+            </figure>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section contact" data-section="section6">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="section-heading">
+            <h2>Contact Mantra</h2>
+          </div>
+        </div>
+        <div class="col-md-6">
+
+          <form id="contact" action="" method="post">
+            @csrf
+            <div class="row">
+              <div class="col-md-6">
+                <fieldset>
+                  <input name="name" type="text" class="form-control" id="name" placeholder="Your Name" required="">
+                </fieldset>
+              </div>
+              <div class="col-md-6">
+                <fieldset>
+                  <input name="email" type="text" class="form-control" id="email" placeholder="Your Email" required="">
+                </fieldset>
+              </div>
+              <div class="col-md-12">
+                <fieldset>
+                  <textarea name="message" rows="6" class="form-control" id="message" placeholder="Your message..."
+                    required=""></textarea>
+                </fieldset>
+              </div>
+              <div class="col-md-12">
+                <fieldset>
+                  <button type="submit" id="form-submit" class="button">Send Message Now</button>
+                </fieldset>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="col-md-6">
+          <div id="map">
+            <img src="images/main-thumb.png" alt="Mantra Location"
+              style="width: 100%; height: 422px; object-fit: cover; border-radius: 5px;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Profile Sidebar -->
+  <div id="profile-sidebar" class="sidebar-panel">
+    <div class="sidebar-header">
+      <h3>Mantra Profile</h3>
+      <button id="close-sidebar" style="background:none; border:none; font-size: 24px; color:white;">&times;</button>
+    </div>
+    <div class="sidebar-content" style="padding: 20px;">
+      <p style="color: white; margin-bottom: 10px;">What are you looking for from Mantra?</p>
+      <textarea id="user-goals" placeholder="I want to improve my focus in..."
+        style="width: 100%; height: 100px; margin-bottom: 20px; border-radius: 5px; padding: 10px;"></textarea>
+
+      <div class="auth-form-sidebar">
+        <h5 style="color:white; margin-bottom:15px;">Login to Dashboard</h5>
+        <form id="sidebar-login-form">
+          <input type="email" id="sidebar-email" class="form-control" placeholder="Email" required
+            style="margin-bottom: 10px; background: rgba(255,255,255,0.1); border:none; color:white;">
+          <input type="password" id="sidebar-password" class="form-control" placeholder="Password" required
+            style="margin-bottom: 15px; background: rgba(255,255,255,0.1); border:none; color:white;">
+          <button type="submit" class="btn btn-warning btn-block">Login</button>
+        </form>
+        <p style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 10px; text-align: center;">
+          New here? <a href="register.html" style="color: #f5a425;">Register</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <p><i class="fa fa-copyright"></i> by Mantra
+
+            | Design: <a href="https://templatemo.com" rel="sponsored" target="_parent">Aneeta peter</a><br>
+            Distributed By: <a href="https://themewagon.com" rel="sponsored" target="_blank">Rajagiri College of Social
+              Science (Autonomous)</a>
+
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <!-- Bootstrap core JavaScript -->
+  <script src="{{ asset('jquery/jquery.min.js') }}"></script>
+  <script src="{{ asset('bootstrap/js/bootstrap.min.js') }}"></script>
+
+  <script src="{{ asset('js/isotope.min.js') }}"></script>
+  <script src="{{ asset('js/owl-carousel.js') }}"></script>
+  <script src="{{ asset('js/lightbox.js') }}"></script>
+  <script src="{{ asset('js/tabs.js') }}"></script>
+  <script src="{{ asset('js/video.js') }}"></script>
+  <script src="{{ asset('js/slick-slider.js') }}"></script>
+  <script src="{{ asset('js/custom.js') }}"></script>
+  <script src="{{ asset('js/auth.js') }}"></script>
+
+
+  <!--We must allow submenu clicks to scroll.-->
+  <script>
+    $('.sub-menu a').on('click', function (e) {
+      e.preventDefault();
+      const target = $(this).attr('href');
+      $('html, body').animate({
+        scrollTop: $('.section[data-section="' + target.replace('#', '') + '"]').offset().top
+      }, 800);
+    });
+  </script>
+  <script>
+    $(document).ready(function () {
+      $('.has-submenu > a').on('click', function (e) {
+        e.preventDefault(); // stop jumping
+        $(this).next('.sub-menu').slideToggle();
+      });
+    });
+  </script>
+  <!--//-------------------------------------------------------------------------
+   Fade-in on scroll script -->
+  <script>
+    $(document).ready(function () {
+
+      // Add fade-in class to sections
+      $('.section, .features-post, .item, .left-content, .right-content').addClass('fade-in');
+
+      function revealOnScroll() {
+        $('.fade-in').each(function () {
+          const top = $(this).offset().top;
+          const scroll = $(window).scrollTop();
+          const windowHeight = $(window).height();
+
+          if (scroll + windowHeight - 100 > top) {
+            $(this).addClass('show');
+          }
+        });
+      }
+
+      revealOnScroll();
+      $(window).on('scroll', revealOnScroll);
+
+    });
+  </script>
+  <script>
+    $(document).ready(function () {
+
+      $('.course-slider').owlCarousel({
+        loop: true,
+        margin: 30,
+        nav: true,
+        center: true,
+        autoplay: true,
+        autoplayTimeout: 1500,
+        autoplayHoverPause: true,
+        dots: true,
+        responsive: {
+          0: { items: 1 },
+          600: { items: 2 },
+          1000: { items: 3 }
+        }
+      });
+
+    });
+  </script>
+
+  <!--==============================================================-->
+  <script>
+    $(document).ready(function () {
+
+      $('.owl-carousel .item').on('mousemove', function (e) {
+        const card = $(this).find('.down-content')[0];
+
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const rotateX = ((y - centerY) / centerY) * 8;   // up-down tilt
+        const rotateY = ((x - centerX) / centerX) * -8;  // left-right tilt
+
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.03)`;
+      });
+
+      $('.owl-carousel .item').on('mouseleave', function () {
+        const card = $(this).find('.down-content')[0];
+        card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+      });
+
+    });
+  </script>
+
+</body>
+
+</html>

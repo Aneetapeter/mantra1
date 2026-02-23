@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mantra Audio Player</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="audio-player" preload="auto"></audio>
+
+    <script>
+        const AudioPlayer = {
+            audio: document.getElementById('audio-player'),
+            playlists: {
+                focus: Array.from({ length: 10 }, (_, i) => `/music/focus/${i + 1}.mp3`),
+                chill: Array.from({ length: 10 }, (_, i) => `/music/chill/${i + 1}.mp3`),
+                quick: Array.from({ length: 10 }, (_, i) => `/music/quick/${i + 1}.mp3`),
+                fun: []
+            },
+            currentPlaylist: [],
+            currentMood: 'chill',
+            currentIndex: 0,
+            isPlaying: false,
+
+            init() {
+                // Restore state from localStorage
+                this.restoreState();
+
+                // Auto-play next track when current ends
+                this.audio.addEventListener('ended', () => this.next());
+
+                // Periodically save state
+                setInterval(() => this.saveState(), 1000);
+
+                // Listen for commands from parent window
+                window.addEventListener('message', (e) => this.handleCommand(e.data));
+
+                // Notify parent that player is ready
+                this.notifyParent('ready', { isPlaying: this.isPlaying, mood: this.currentMood });
+
+                // If was playing, resume
+                if (this.isPlaying && this.currentPlaylist.length > 0) {
+                    this.audio.play().catch(() => {
+                        this.isPlaying = false;
+                        this.notifyParent('stateChange', { isPlaying: false });
+                    });
+                }
+            },
+
+            handleCommand(cmd) {
+                if (!cmd || !cmd.action) return;
+
+                switch (cmd.action) {
+                    case 'play':
+                        this.play();
+                        break;
+                    case 'pause':
+                        this.pause();
+                        break;
+                    case 'toggle':
+                        this.togglePlay();
+                        break;
+                    case 'next':
+                        this.next();
+                        break;
+                    case 'prev':
+                        this.prev();
+                        break;
+                    case 'setMood':
+                        this.loadPlaylist(cmd.mood);
+                        break;
+                    case 'seek':
+                        if (this.audio.duration) {
+                            this.audio.currentTime = cmd.percent * this.audio.duration;
+                        }
+                        break;
+                    case 'getState':
+                        this.notifyParent('stateChange', this.getState());
+                        break;
+                }
+            },
+
+            loadPlaylist(mood) {
+                if (mood === 'fun' && this.playlists.fun.length === 0) {
+                    mood = 'chill';
+                }
+                this.currentMood = mood;
+                this.currentPlaylist = this.playlists[mood] || this.playlists.chill;
+                this.currentIndex = 0;
+                this.loadTrack(this.currentIndex);
+                this.play();
+                this.notifyParent('moodChange', { mood: mood });
+            },
+
+            loadTrack(index) {
+                if (!this.currentPlaylist[index]) return;
+                this.audio.src = this.currentPlaylist[index];
+                this.audio.load();
+            },
+
+            play() {
+                this.audio.play().then(() => {
+                    this.isPlaying = true;
+                    this.notifyParent('stateChange', this.getState());
+                }).catch(e => {
+                    console.error('Autoplay prevented:', e);
+                });
+            },
+
+            pause() {
+                this.audio.pause();
+                this.isPlaying = false;
+                this.notifyParent('stateChange', this.getState());
+            },
+
+            togglePlay() {
+                if (this.isPlaying) this.pause();
+                else this.play();
+            },
+
+            next() {
+                this.currentIndex = (this.currentIndex + 1) % this.currentPlaylist.length;
+                this.loadTrack(this.currentIndex);
+                this.play();
+            },
+
+            prev() {
+                this.currentIndex = (this.currentIndex - 1 + this.currentPlaylist.length) % this.currentPlaylist.length;
+                this.loadTrack(this.currentIndex);
+                this.play();
+            },
+
+            getState() {
+                return {
+                    isPlaying: this.isPlaying,
+                    mood: this.currentMood,
+                    trackIndex: this.currentIndex,
+                    currentTime: this.audio.currentTime,
+                    duration: this.audio.duration || 0,
+                    progress: this.audio.duration ? (this.audio.currentTime / this.audio.duration) * 100 : 0
+                };
+            },
+
+            saveState() {
+                localStorage.setItem('mantra_music_state', JSON.stringify({
+                    mood: this.currentMood,
+                    trackIndex: this.currentIndex,
+                    currentTime: this.audio.currentTime,
+                    isPlaying: this.isPlaying
+                }));
+            },
+
+            restoreState() {
+                try {
+                    const saved = localStorage.getItem('mantra_music_state');
+                    if (saved) {
+                        const state = JSON.parse(saved);
+                        this.currentMood = state.mood || 'chill';
+                        this.currentPlaylist = this.playlists[this.currentMood] || this.playlists.chill;
+                        this.currentIndex = state.trackIndex || 0;
+                        this.isPlaying = state.isPlaying || false;
+
+                        if (this.currentPlaylist[this.currentIndex]) {
+                            this.audio.src = this.currentPlaylist[this.currentIndex];
+                            this.audio.currentTime = state.currentTime || 0;
+                        }
+                    } else {
+                        this.currentPlaylist = this.playlists.chill;
+                        this.loadTrack(0);
+                    }
+                } catch (e) {
+                    console.error('Error restoring state:', e);
+                    this.currentPlaylist = this.playlists.chill;
+                    this.loadTrack(0);
+                }
+            },
+
+            notifyParent(type, data) {
+                if (window.parent !== window) {
+                    window.parent.postMessage({ type, data }, '*');
+                }
+            }
+        };
+
+        // Start when DOM is ready
+        AudioPlayer.init();
+
+        // Also broadcast progress updates
+        setInterval(() => {
+            if (AudioPlayer.isPlaying) {
+                AudioPlayer.notifyParent('progress', {
+                    progress: AudioPlayer.audio.duration ? (AudioPlayer.audio.currentTime / AudioPlayer.audio.duration) * 100 : 0,
+                    currentTime: AudioPlayer.audio.currentTime,
+                    duration: AudioPlayer.audio.duration || 0
+                });
+            }
+        }, 500);
+    </script>
+</body>
+
+</html>
