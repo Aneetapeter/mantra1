@@ -1,2 +1,12 @@
 [phases.setup]
-aptPkgs = ["...", "libatomic1"]
+nixPkgs = ["php", "composer"]
+
+[phases.build]
+cmds = [
+  "composer install --no-dev --optimize-autoloader",
+  "php artisan key:generate",
+  "php artisan config:cache"
+]
+
+[start]
+cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"
