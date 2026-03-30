@@ -1,0 +1,15 @@
+
+> build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 63 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mpublic/build/[22m[32mmanifest.json                       [39m[1m[2m  0.67 kB[22m[1m[22m[2m │ gzip:  0.26 kB[22m
+[2mpublic/build/[22m[32massets/owl.video.play-BJo37keB.png  [39m[1m[2m  4.98 kB[22m[1m[22m
+[2mpublic/build/[22m[35massets/app-tn0RQdqM.css             [39m[1m[2m  0.00 kB[22m[1m[22m[2m │ gzip:  0.02 kB[22m
+[2mpublic/build/[22m[35massets/app-B502EvXU.css             [39m[1m[2m  3.24 kB[22m[1m[22m[2m │ gzip:  0.97 kB[22m
+[2mpublic/build/[22m[36massets/app-r4n2h6ul.js              [39m[1m[2m255.78 kB[22m[1m[22m[2m │ gzip: 83.12 kB[22m
+[32m✓ built in 1.25s[39m
