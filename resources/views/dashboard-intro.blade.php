@@ -54,10 +54,12 @@
         // Redirect after video ends
         const video = document.querySelector('video');
         video.onended = function () {
+            sessionStorage.setItem('skip_loader', '1');
             window.location.href = "{{ route('dashboard') }}";
         };
         // Fallback just in case video doesn't autoplay or stalls
         setTimeout(() => {
+            sessionStorage.setItem('skip_loader', '1');
             window.location.href = "{{ route('dashboard') }}";
         }, 10000); 
     </script>

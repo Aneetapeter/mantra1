@@ -42,11 +42,14 @@ Route::get('/logout', function () {
     return view('auth.logout');
 })->middleware('auth')->name('logout.page');
 
+// Contact Form
+use App\Http\Controllers\ContactController;
+Route::post('/contact', [ContactController::class, 'sendMessage'])->name('contact.send');
+
 // Logout action
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
 
-// Dashboard Route (Protected)
-// Dashboard Intro (for new users after registration)
+// Dashboard Intro — always plays the intro video, then auto-redirects to dashboard
 Route::get('/dashboard-intro', function () {
     return view('dashboard-intro');
 })->middleware('auth')->name('dashboard.intro');
@@ -89,7 +92,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/app/smart-notes/tags', [App\Http\Controllers\SmartNoteController::class, 'storeTag']);
     Route::post('/app/smart-notes/extract', [App\Http\Controllers\SmartNoteController::class, 'extract']);
     Route::post('/app/smart-notes/upload', [App\Http\Controllers\SmartNoteController::class, 'upload']);
+
+    // ── App-open time heartbeat (passive study time tracking) ──
+    Route::post('/api/heartbeat', [App\Http\Controllers\DashboardController::class, 'heartbeat'])
+        ->name('heartbeat');
 });
+
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/watch', function () {
@@ -100,9 +108,7 @@ Route::get('/watch', function () {
     }
 })->name('watch.redirect');
 
-Route::get('/dashboard-intro', function () {
-    return view('dashboard-intro');
-})->middleware('auth')->name('dashboard.intro');
+// (duplicate removed — see route above)
 
 
 Route::get('/library', [App\Http\Controllers\LibraryController::class, 'index'])->middleware('auth')->name('library');
@@ -121,4 +127,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/preferences', [App\Http\Controllers\SettingController::class, 'updatePreferences'])->name('settings.preferences');
     Route::delete('/settings/account', [App\Http\Controllers\SettingController::class, 'deleteAccount'])->name('settings.delete');
 
+    // ── Chat Routes ──
+    Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat');
+    Route::get('/chat/search', [App\Http\Controllers\ChatController::class, 'searchStudents']);
+    Route::post('/chat/request', [App\Http\Controllers\ChatController::class, 'sendFriendRequest']);
+    Route::get('/chat/requests', [App\Http\Controllers\ChatController::class, 'getFriendRequests']);
+    Route::post('/chat/respond', [App\Http\Controllers\ChatController::class, 'respondRequest']);
+    Route::get('/chat/friends', [App\Http\Controllers\ChatController::class, 'getFriends']);
+    Route::get('/chat/messages/{friendId}', [App\Http\Controllers\ChatController::class, 'getMessages']);
+    Route::post('/chat/message', [App\Http\Controllers\ChatController::class, 'sendMessage']);
+    Route::post('/chat/block', [App\Http\Controllers\ChatController::class, 'blockUser']);
+    Route::post('/chat/unblock', [App\Http\Controllers\ChatController::class, 'unblockUser']);
+    Route::get('/chat/blocked', [App\Http\Controllers\ChatController::class, 'getBlocked']);
+    Route::get('/chat/profile/{id}', [App\Http\Controllers\ChatController::class, 'getUserProfile']);
 });

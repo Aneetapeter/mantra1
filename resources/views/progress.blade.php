@@ -478,10 +478,7 @@
                     <i class="fa fa-bars" id="btn"></i>
                 </div>
                 <ul class="nav-list">
-                    <li>
-                        <a href="{{ url('/') }}"><i class="fa fa-home"></i><span class="links_name">Home</span></a>
-                        <span class="tooltip">Home</span>
-                    </li>
+
                     <li>
                         <a href="{{ route('dashboard') }}"><i class="fa fa-th-large"></i><span
                                 class="links_name">Dashboard</span></a>
@@ -503,17 +500,16 @@
                         <span class="tooltip">Progress</span>
                     </li>
                     <li>
+                        <a href="{{ route('chat') }}"><i class="fa fa-comments"></i><span class="links_name">Chat</span></a>
+                        <span class="tooltip">Chat</span>
+                    </li>
+                    <li>
                         <a href="{{ route('settings') }}"><i class="fa fa-cog"></i><span
                                 class="links_name">Settings</span></a>
                         <span class="tooltip">Settings</span>
                     </li>
                     <li class="profile">
                         <div class="profile-details">
-                            <div class="profile-icon-wrap"
-                                style="width:36px;height:36px;background:rgba(92,124,250,0.18);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                <i class="fa fa-user"
-                                    style="font-size:16px;min-width:unset;height:unset;line-height:unset;color:#5C7CFA;"></i>
-                            </div>
                             <div class="name_job">
                                 <div class="name">{{ $user->name }}</div>
                                 <div class="job">{{ $user->title }}</div>
@@ -652,13 +648,13 @@
                                                 <div style="flex-shrink:0;width:44px;height:44px;position:relative;">
                                                     <img src="{{ asset($rp) }}" alt="{{ $ri['label'] }}"
                                                         style="width:44px;height:44px;object-fit:contain;border-radius:10px;padding:4px;
-                                                                                                                                    background:{{ $a['unlocked'] ? 'rgba(0,184,148,0.12)' : 'rgba(255,255,255,0.04)' }};
-                                                                                                                                    {{ $a['unlocked'] ? 'box-shadow:0 0 0 2px #00B894;' : 'filter:grayscale(1) opacity(0.25);' }}"
+                                                                                                                                                background:{{ $a['unlocked'] ? 'rgba(0,184,148,0.12)' : 'rgba(255,255,255,0.04)' }};
+                                                                                                                                                {{ $a['unlocked'] ? 'box-shadow:0 0 0 2px #00B894;' : 'filter:grayscale(1) opacity(0.25);' }}"
                                                         onerror="this.parentElement.style.display='none'">
                                                     <div
                                                         style="position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;border-radius:50%;
-                                                                                                                                    background:{{ $a['unlocked'] ? '#00B894' : 'rgba(255,255,255,0.15)' }};
-                                                                                                                                    display:flex;align-items:center;justify-content:center;">
+                                                                                                                                                background:{{ $a['unlocked'] ? '#00B894' : 'rgba(255,255,255,0.15)' }};
+                                                                                                                                                display:flex;align-items:center;justify-content:center;">
                                                         <i class="fa {{ $a['unlocked'] ? 'fa-check' : 'fa-lock' }}"
                                                             style="font-size:8px;color:{{ $a['unlocked'] ? '#fff' : 'rgba(255,255,255,0.5)' }};"></i>
                                                     </div>
@@ -822,7 +818,28 @@
             }
 
             // Sidebar toggle
-            $('#btn').click(() => $('.sidebar').toggleClass('open'));
+            // Sidebar toggle (mobile overlay aware)
+            (function() {
+                var sb = document.querySelector('.sidebar');
+                var btn = document.getElementById('btn');
+                if (!document.getElementById('sidebar-overlay')) {
+                    var ov = document.createElement('div');
+                    ov.id = 'sidebar-overlay'; ov.className = 'sidebar-overlay';
+                    document.body.appendChild(ov);
+                }
+                var overlay = document.getElementById('sidebar-overlay');
+                btn.addEventListener('click', function() {
+                    var isOpen = sb.classList.toggle('open');
+                    if (isOpen && window.innerWidth <= 768) overlay.classList.add('active');
+                    else overlay.classList.remove('active');
+                    btn.classList.toggle('fa-bars', !isOpen);
+                    btn.classList.toggle('fa-align-right', isOpen);
+                });
+                overlay.addEventListener('click', function() {
+                    sb.classList.remove('open'); overlay.classList.remove('active');
+                    btn.classList.replace('fa-align-right','fa-bars');
+                });
+            })();
 
             // XP bar animate in
             setTimeout(() => {

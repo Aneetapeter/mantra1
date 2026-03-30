@@ -40,13 +40,7 @@
                 <i class="fa fa-bars" id="btn"></i>
             </div>
             <ul class="nav-list">
-                <li>
-                    <a href="{{ url('/') }}">
-                        <i class="fa fa-home"></i>
-                        <span class="links_name">Home</span>
-                    </a>
-                    <span class="tooltip">Home</span>
-                </li>
+
                 <li>
                     <a href="{{ route('dashboard') }}">
 
@@ -75,6 +69,13 @@
                         <span class="links_name">Progress</span>
                     </a>
                     <span class="tooltip">Progress</span>
+                </li>
+                <li>
+                    <a href="{{ route('chat') }}">
+                        <i class="fa fa-comments"></i>
+                        <span class="links_name">Chat</span>
+                    </a>
+                    <span class="tooltip">Chat</span>
                 </li>
                 <li>
                     <a href="{{ route('settings') }}">
@@ -257,10 +258,25 @@
                 }, 500);
             }
 
-            // Sidebar toggle
-            $('#btn').click(function () {
-                $('.sidebar').toggleClass('open');
-            });
+            // Sidebar toggle (mobile overlay aware)
+            (function() {
+                var sb = document.querySelector('.sidebar');
+                var btn = document.getElementById('btn');
+                if (!document.getElementById('sidebar-overlay')) {
+                    var ov = document.createElement('div');
+                    ov.id = 'sidebar-overlay'; ov.className = 'sidebar-overlay';
+                    document.body.appendChild(ov);
+                }
+                var overlay = document.getElementById('sidebar-overlay');
+                btn.addEventListener('click', function() {
+                    var isOpen = sb.classList.toggle('open');
+                    if (isOpen && window.innerWidth <= 768) overlay.classList.add('active');
+                    else overlay.classList.remove('active');
+                });
+                overlay.addEventListener('click', function() {
+                    sb.classList.remove('open'); overlay.classList.remove('active');
+                });
+            })();
 
             // TABS LOGIC
             $('.tab-btn').click(function () {

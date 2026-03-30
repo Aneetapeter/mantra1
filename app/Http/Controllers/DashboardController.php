@@ -10,7 +10,12 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $userId = \Illuminate\Support\Facades\Auth::id();
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $userId = $user->id;
+
+        // ── Evaluate streak based on yesterday's task completion ──
+        StreakService::checkAndUpdateStreak($user);
+        $user = $user->fresh(); // Reload updated streak
 
         $recentNotes = \App\Models\Note::where('user_id', $userId)
             ->latest()
@@ -27,13 +32,13 @@ class DashboardController extends Controller
         return view('dashboard', compact('recentNotes', 'todayEvents'));
     }
 
+    /**
+     * Called when a Pomodoro study session is completed.
+     */
     public function completeStudySession(Request $request)
     {
         $user = $request->user();
         $duration = $request->input('duration', 1500);
-
-        // Update streak and study time
-        $streak = StreakService::record($user);
 
         $user->total_study_seconds += $duration;
         $user->save();
@@ -53,8 +58,6 @@ class DashboardController extends Controller
         $message = 'Study session complete! +' . $xp['xp_gained'] . ' XP';
         if ($xp['leveled_up'])
             $message .= ' 🎉 Level Up!';
-        if ($streak['milestone'])
-            $message .= ' 🔥 7-Day Streak Bonus!';
 
         return response()->json([
             'success' => true,
@@ -65,9 +68,37 @@ class DashboardController extends Controller
             'title' => $user->title,
             'leveled_up' => $xp['leveled_up'],
             'reward' => $reward,
-            'streak_info' => $streak,
+            'streak_info' => ['streak' => $user->current_streak, 'incremented' => false, 'milestone' => false],
             'xp_progress' => XpService::getProgress($user),
             'message' => $message,
+        ]);
+    }
+
+    /**
+     * Heartbeat — called periodically while the user has the app open.
+     * Adds elapsed seconds to total_study_seconds (passive app-open time).
+     */
+    public function heartbeat(Request $request)
+    {
+        $user = $request->user();
+        $seconds = (int) $request->input('seconds', 60);
+
+        // Cap per heartbeat to 5 minutes to prevent abuse/tab-sleep inflating numbers
+        $seconds = min($seconds, 300);
+
+        if ($seconds > 0) {
+            $user->total_study_seconds += $seconds;
+            $user->save();
+        }
+
+        $total = $user->total_study_seconds;
+        $hours = floor($total / 3600);
+        $minutes = floor(($total % 3600) / 60);
+
+        return response()->json([
+            'success' => true,
+            'total_time' => "{$hours}h {$minutes}m",
+            'seconds' => $user->total_study_seconds,
         ]);
     }
 }

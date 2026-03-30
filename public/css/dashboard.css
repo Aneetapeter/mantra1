@@ -265,6 +265,8 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
+    position: relative;
+    z-index: 1050;
 }
 
 .top-bar .text {
@@ -309,6 +311,7 @@ body {
     position: relative;
     font-size: 20px;
     cursor: pointer;
+    z-index: 1050;
 }
 
 .icon-wrap .badge {
@@ -762,23 +765,7 @@ body {
     color: var(--text-main);
 }
 
-/* Responsive adjustments */
-@media (max-width: 420px) {
-    .sidebar {
-        width: 0px;
-        /* Hidden on small screens initially */
-        padding: 0;
-    }
-
-    .open.sidebar {
-        padding: 6px 14px;
-        width: 250px;
-    }
-
-    .sidebar .logo_name {
-        display: none;
-    }
-}
+/* Responsive adjustments — replaced by full block at bottom of file */
 
 /* 🚀 New Upload Section Styles */
 .upload-section {
@@ -1659,6 +1646,7 @@ input:checked+.slider:before {
 /* Replace .progress-bar-music with .music-range */
 .music-range {
     -webkit-appearance: none;
+    appearance: none;
     width: 100%;
     height: 6px;
     background: rgba(255, 255, 255, 0.2);
@@ -2715,4 +2703,226 @@ body.light-mode ::-webkit-scrollbar-thumb {
 
 body.light-mode .sidebar.compact {
     background: #ffffff;
+}
+
+/* ── Notifications Dropdown Light Mode Overrides ── */
+body.light-mode .notifications-dropdown {
+    background: #ffffff !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+body.light-mode .notifications-dropdown h5 {
+    color: #1a1d2e !important;
+}
+
+body.light-mode .notifications-dropdown>div:first-child {
+    background: #f8f9ff !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-mode #no-notifications-msg {
+    color: #6b7280 !important;
+}
+
+body.light-mode .notification-item {
+    border-bottom-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-mode .notification-item h6 {
+    color: #1a1d2e !important;
+}
+
+body.light-mode .notification-item p {
+    color: #374151 !important;
+}
+
+body.light-mode .notification-item span {
+    color: #6b7280 !important;
+}
+
+/* =================================================================
+   📱 FULL MOBILE RESPONSIVENESS — applies to all app pages
+   ================================================================= */
+
+/* ── Hamburger overlay backdrop ── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 98;
+    backdrop-filter: blur(2px);
+}
+.sidebar-overlay.active { display: block; }
+
+@media (max-width: 768px) {
+
+    /* ── Dashboard container ── */
+    .dashboard-container {
+        display: block;
+        overflow-x: hidden;
+    }
+
+    /* ── Sidebar: hidden, slides in as overlay ── */
+    .sidebar {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        z-index: 100;
+        box-shadow: none;
+        transition: width 0.35s ease, padding 0.35s ease, box-shadow 0.35s ease;
+    }
+    .sidebar.open {
+        width: 260px;
+        padding: 6px 14px;
+        box-shadow: 8px 0 30px rgba(0, 0, 0, 0.5);
+    }
+    .sidebar.open .logo_name { opacity: 1; }
+    .sidebar.open li a .links_name { opacity: 1; pointer-events: auto; }
+    .sidebar li .tooltip { display: none !important; }
+
+    /* Profile bar in sidebar */
+    .sidebar li.profile {
+        width: 0;
+        overflow: hidden;
+        transition: width 0.35s ease;
+    }
+    .sidebar.open li.profile { width: 260px; }
+
+    /* ── Main content: fill full width ── */
+    .home-section {
+        left: 0 !important;
+        width: 100% !important;
+        padding: 15px 14px 100px 14px;
+    }
+    .sidebar.open ~ .home-section {
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+    .top-bar .text {
+        font-size: 16px;
+        width: 100%;
+    }
+    .top-tools { width: 100%; justify-content: flex-end; }
+    .search-box { min-width: unset; flex: 1; }
+
+    /* ── Welcome card ── */
+    .welcome-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px 16px;
+    }
+    .welcome-img { display: none; }
+    .welcome-text h2 { font-size: 20px; }
+    .mood-buttons { gap: 8px; }
+    .mood-btn { padding: 7px 12px; font-size: 12px; }
+
+    /* ── Today's focus card / stat cards ── */
+    .stat-card { padding: 16px; }
+    .stat-card h3 { font-size: 16px; margin-bottom: 12px; }
+
+    /* ── Stat mini cards ── */
+    .stat-mini-card { padding: 14px; gap: 12px; }
+    .stat-mini-card:hover { transform: none; }
+    .text-box h4 { font-size: 17px; }
+
+    /* ── Content cards ── */
+    .content-card { padding: 18px; height: auto; }
+
+    /* ── Upload section ── */
+    .upload-section { padding: 16px; }
+    .upload-area { padding: 24px 16px; }
+    .upload-area h3 { font-size: 15px; }
+    .upload-icon { font-size: 36px; }
+
+    /* ── Timer widget ── */
+    .timer-display { font-size: 32px; }
+
+    /* ── Tools grid ── */
+    .tools-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+
+    /* ── Notifications dropdown ── */
+    .notifications-dropdown {
+        width: 290px !important;
+        right: -60px !important;
+    }
+
+    /* ── Settings: profile section stack ── */
+    .profile-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px;
+    }
+    .settings-card { padding: 18px; }
+    .setting-item { flex-wrap: wrap; gap: 10px; }
+
+    /* ── Calendar grid ── */
+    .cal-grid { gap: 4px; }
+    .cal-date { height: 34px; font-size: 12px; border-radius: 6px; }
+    .cal-day-name { font-size: 10px; }
+    .calendar-widget { padding: 16px; }
+
+    /* ── Library ── */
+    .video-scroll { gap: 12px; }
+    .video-card { min-width: 220px; }
+    .library-tabs { gap: 8px; }
+    .tab-btn { padding: 8px 14px; font-size: 13px; }
+
+    /* ── Music widget ── */
+    .music-widget { bottom: 18px; right: 14px; }
+    .music-toggle { width: 52px; height: 52px; }
+
+    /* ── Chat page: many chat layouts have sidebar + chat ── */
+    .chat-layout { flex-direction: column; }
+    .chat-sidebar, .conversations-panel { width: 100% !important; max-height: 240px; }
+    .chat-main { flex: 1; }
+
+    /* ── Prevent horizontal overflow ── */
+    body { overflow-x: hidden; }
+    .row { margin-left: 0; margin-right: 0; }
+    [class*="col-"] { padding-left: 8px; padding-right: 8px; }
+}
+
+/* ── Extra-small phones (≤ 480px) ── */
+@media (max-width: 480px) {
+
+    .home-section { padding: 12px 10px 90px 10px; }
+
+    .welcome-text h2 { font-size: 18px; }
+    .mood-buttons { gap: 6px; }
+    .mood-btn { padding: 6px 10px; font-size: 11px; }
+
+    .top-bar .text { font-size: 14px; }
+    .search-box input { font-size: 13px; }
+
+    .stat-mini-card { padding: 12px; }
+    .icon-box { width: 40px; height: 40px; font-size: 16px; }
+    .text-box h4 { font-size: 15px; }
+
+    .content-card { padding: 14px; border-radius: 14px; }
+    .card-header h3 { font-size: 15px; }
+
+    .timer-display { font-size: 28px; }
+
+    .notifications-dropdown {
+        width: calc(100vw - 28px) !important;
+        right: -10px !important;
+        left: auto !important;
+    }
+
+    .music-widget { bottom: 12px; right: 10px; }
+    .music-toggle { width: 46px; height: 46px; font-size: 16px; }
+
+    /* Full-screen sidebar on tiny phones */
+    .sidebar.open { width: min(260px, 85vw); }
 }

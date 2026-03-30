@@ -31,12 +31,12 @@ class AuthController extends Controller
 
         // Validate remaining input
         $request->validate([
-            'name' => 'required|string|min:3',
-            'email' => 'required|email',
-            'password' => 'required|min:6',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:8|confirmed',
         ], [
             'name.required' => 'Please enter a User ID',
-            'name.min' => 'User ID must be at least 3 characters',
+            'name.max' => 'User ID must not exceed 255 characters',
         ]);
 
         // Create user
@@ -66,18 +66,19 @@ class AuthController extends Controller
         // Server-side validation
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required|min:6',
+            'password' => 'required|min:8',
         ], [
             'email.required' => 'Please enter your email',
             'email.email' => 'Please enter a valid email address',
             'password.required' => 'Please enter your password',
-            'password.min' => 'Password must be at least 6 characters',
+            'password.min' => 'Password must be at least 8 characters',
         ]);
 
-        $credentials = $request->only('email', 'password');
         $remember = $request->has('remember');
+        $user = User::where('email', $request->email)->first();
 
-        if (Auth::attempt($credentials, $remember)) {
+        if ($user && Hash::check($request->password, $user->password)) {
+            Auth::login($user, $remember);
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
             return redirect()->route('dashboard.intro');
@@ -87,7 +88,7 @@ class AuthController extends Controller
         RateLimiter::hit($throttleKey, 60);
 
         return back()->withErrors([
-            'email' => 'Invalid email or password.',
+            'email' => 'Invalid credentials',
         ])->withInput($request->only('email', 'remember'));
     }
 

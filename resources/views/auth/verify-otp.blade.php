@@ -110,13 +110,7 @@
                         Enter the 6-digit OTP sent to <strong>{{ session('masked_email') }}</strong>
                     </div>
 
-                    @if(session('display_otp'))
-                        <div class="success-box"
-                            style="background: rgba(245, 164, 37, 0.2); border-color: #f5a425; color: #f5a425;">
-                            <i class="fa fa-key"></i> <strong>Your OTP:</strong> {{ session('display_otp') }}
-                            <br><small>(This will be sent via email once SMTP is configured)</small>
-                        </div>
-                    @endif
+
 
                     <form method="POST" action="{{ route('password.verify.post') }}" id="otp-form">
                         @csrf

@@ -10,17 +10,8 @@ $(document).ready(function () {
         }, 500);
     }
 
-    // Intercept links for loader effect
-    $('a').on('click', function (e) {
-        const url = $(this).attr('href');
-        if (url && !url.startsWith('#') && !url.startsWith('javascript') && $(this).attr('target') !== '_blank') {
-            e.preventDefault();
-            if (loader) {
-                $(loader).css('display', 'flex').css('opacity', '1');
-            }
-            setTimeout(() => window.location.href = url, 300);
-        }
-    });
+    // Global Loader Removal
+    // Removed legacy <a> click interceptor that caused double-flashing during navigation
 
     // ========== BROWSER NOTIFICATIONS ==========
     // Request permission on page load
@@ -40,29 +31,49 @@ $(document).ready(function () {
         }
     };
 
-    // 1. Sidebar Toggle
+    // 1. Sidebar Toggle (with mobile overlay)
     let sidebar = document.querySelector(".sidebar");
     let closeBtn = document.querySelector("#btn");
-    let searchBtn = document.querySelector(".fa-search");
+
+    // Inject overlay div if not already present
+    if (!document.getElementById('sidebar-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.id = 'sidebar-overlay';
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+    }
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    function isMobile() { return window.innerWidth <= 768; }
+
+    function openSidebar() {
+        sidebar.classList.add("open");
+        closeBtn.classList.replace("fa-bars", "fa-align-right");
+        if (isMobile()) sidebarOverlay.classList.add('active');
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove("open");
+        closeBtn.classList.replace("fa-align-right", "fa-bars");
+        sidebarOverlay.classList.remove('active');
+    }
 
     closeBtn.addEventListener("click", () => {
-        sidebar.classList.toggle("open");
-        menuBtnChange();
+        if (sidebar.classList.contains("open")) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
     });
 
-    // optional: open sidebar when searching
-    // searchBtn.addEventListener("click", ()=>{
-    //   sidebar.classList.toggle("open");
-    //   menuBtnChange();
-    // });
+    // Close sidebar when overlay is tapped on mobile
+    sidebarOverlay.addEventListener('click', closeSidebar);
 
-    function menuBtnChange() {
-        if (sidebar.classList.contains("open")) {
-            closeBtn.classList.replace("fa-bars", "fa-align-right");
-        } else {
-            closeBtn.classList.replace("fa-align-right", "fa-bars");
-        }
-    }
+    // Close sidebar on resize to desktop
+    window.addEventListener('resize', () => {
+        if (!isMobile()) sidebarOverlay.classList.remove('active');
+    });
+
 
     // 2. Personalization (Load User)
 
@@ -945,6 +956,13 @@ $(document).ready(function () {
                     if (nowDone) {
                         // Move to completed area
                         showToast('✅ Task completed!', 'success');
+
+                        // Notify System Integration for gamification logic
+                        if (typeof window.MantraNotify !== 'undefined') {
+                            const taskTitle = $item.find('.task-title').text() || 'Task';
+                            window.MantraNotify.triggerTaskComplete(taskTitle);
+                        }
+
                         $item.addClass('task-done');
                         $item.find('.task-toggle-icon').removeClass('fa-circle-thin').addClass('fa-check-circle checked').css('color', '#4CAF50');
                         $item.find('.task-title').css({ 'text-decoration': 'line-through', 'opacity': '0.5' });
@@ -1168,7 +1186,14 @@ $(document).ready(function () {
         const todos = await API.get('todos');
         const todo = todos.find(t => t.id == id);
         if (todo) {
-            await API.put('todos', id, { completed: !todo.completed });
+            const isNowCompleted = !todo.completed;
+            await API.put('todos', id, { completed: isNowCompleted });
+
+            // Notify gamification system
+            if (isNowCompleted && typeof window.MantraNotify !== 'undefined') {
+                window.MantraNotify.triggerTaskComplete(todo.text || 'Task');
+            }
+
             renderTodos();
         }
     });
@@ -1425,7 +1450,14 @@ $(document).ready(function () {
                 const todos = await API.get('todos');
                 const t = todos.find(x => x.id == id);
                 if (t) {
-                    await API.put('todos', id, { completed: !t.completed });
+                    const isNowCompleted = !t.completed;
+                    await API.put('todos', id, { completed: isNowCompleted });
+
+                    // Notify gamification system
+                    if (isNowCompleted && typeof window.MantraNotify !== 'undefined') {
+                        window.MantraNotify.triggerTaskComplete(t.text || 'Task');
+                    }
+
                     self.renderSidebarTasks();
                 }
             });
@@ -1638,6 +1670,11 @@ $(document).ready(function () {
 
             // Only show pending (not completed) tasks in the inbox
             const pending = tasks.filter(t => !t.completed);
+
+            // Hook into Notification System for deadlines
+            if (typeof window.MantraNotify !== 'undefined') {
+                window.MantraNotify.checkUpcomingDeadlines(pending);
+            }
 
             if (pending.length === 0) {
                 container.html('<p style="font-size:12px; color:var(--text-muted); text-align:center;">No pending tasks 🎉</p>');
@@ -1907,25 +1944,37 @@ $(document).ready(function () {
                 end_datetime: endDt
             };
 
-            if (this.editingEventId) {
-                // Update
-                await API.put('events', this.editingEventId, {
-                    id: this.editingEventId,
-                    ...eventData
-                });
-                showToast('Event updated!');
-            } else {
-                // Create
-                await API.post('events', {
-                    id: Date.now(),
-                    ...eventData
-                });
-                showToast('Event created!');
-            }
+            const $calMain = $('.cal-main');
+            $('#save-event-btn').prop('disabled', true).text('Saving...');
+            $calMain.css('position', 'relative').append('<div id="cal-loader" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11, 17, 32, 0.5); z-index:2000; display:flex; justify-content:center; align-items:center; border-radius:12px;"><i class="fa fa-spinner fa-spin" style="font-size:3rem; color:var(--cal-study);"></i></div>');
 
-            $('#event-modal-overlay').fadeOut();
-            await this.loadEvents(); // Reload cache after save
-            this.refreshCurrentView();
+            try {
+                if (this.editingEventId) {
+                    // Update
+                    await API.put('events', this.editingEventId, {
+                        id: this.editingEventId,
+                        ...eventData
+                    });
+                    showToast('Event updated!');
+                } else {
+                    // Create
+                    await API.post('events', {
+                        id: Date.now(),
+                        ...eventData
+                    });
+                    showToast('Event created!');
+                }
+
+                $('#event-modal-overlay').fadeOut();
+                await this.loadEvents(); // Reload cache after save
+                this.refreshCurrentView();
+            } catch (error) {
+                console.error("Error saving event:", error);
+                showToast("Error saving event!", "error");
+            } finally {
+                $('#save-event-btn').prop('disabled', false).text(this.editingEventId ? 'Update' : 'Create Event');
+                $('#cal-loader').remove();
+            }
         },
 
         deleteEvent: async function () {
@@ -3135,7 +3184,7 @@ const SmartNotes = {
             const date = new Date(note.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             const item = `
                 <a href="/study?note_id=${note.id}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
-                   style="background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05); color: #e6e6e6; padding: 12px 15px;">
+                   style="background: transparent; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.05)); color: var(--text-main, #e6e6e6); padding: 12px 15px;">
                     <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
                         <i class="fa fa-sticky-note-o" style="color: #5C7CFA;"></i>
                         <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">${note.title}</span>
@@ -3211,4 +3260,165 @@ const SmartNotes = {
 // Initialize SmartNotes on load
 $(document).ready(function () {
     SmartNotes.init();
+});
+
+// ==========================================
+// QUICK STUDY TIMER LOGIC
+// ==========================================
+const QuickStudyTimer = {
+    intervals: { study: 25 * 60, break: 5 * 60 },
+    timerInterval: null,
+
+    init: function () {
+        this.bindEvents();
+        this.checkPersistentTimer();
+        // Start background ticker
+        this.timerInterval = setInterval(() => this.tick(), 1000);
+    },
+
+    bindEvents: function () {
+        $(document).on('click', '.t-btn.start', () => {
+            this.startTimer('study', this.intervals.study);
+        });
+
+        $(document).on('click', '.t-btn.break', () => {
+            this.startTimer('break', this.intervals.break);
+        });
+    },
+
+    startTimer: function (mode, durationSeconds) {
+        const endTime = new Date().getTime() + (durationSeconds * 1000);
+        localStorage.setItem('mantra_qs_endtime', endTime);
+        localStorage.setItem('mantra_qs_mode', mode);
+        localStorage.setItem('mantra_qs_started', 'true');
+
+        if (mode === 'study' && typeof window.MantraNotify !== 'undefined') {
+            window.MantraNotify.sendNotification("📚 Focus Mode Started", {
+                body: "25 minutes on the clock. You've got this!"
+            });
+        }
+
+        // Disable Start, Enable Break if studying (or vice versa handled by UI later)
+        this.updateButtonsUI(mode);
+        this.tick();
+    },
+
+    checkPersistentTimer: function () {
+        const isStarted = localStorage.getItem('mantra_qs_started');
+        const mode = localStorage.getItem('mantra_qs_mode') || 'study';
+
+        if (isStarted === 'true') {
+            this.updateButtonsUI(mode);
+            this.tick();
+        } else {
+            // Default Idle State
+            this.updateDisplay(this.intervals.study);
+            this.updateButtonsUI('idle');
+        }
+    },
+
+    tick: function () {
+        const isStarted = localStorage.getItem('mantra_qs_started');
+        if (isStarted !== 'true') return;
+
+        const endTime = parseInt(localStorage.getItem('mantra_qs_endtime'));
+        const now = new Date().getTime();
+        const mode = localStorage.getItem('mantra_qs_mode');
+
+        const remainingMs = endTime - now;
+
+        if (remainingMs <= 0) {
+            // Timer Finished
+            this.completeTimer(mode);
+            return;
+        }
+
+        // Update UI displays (Dashboard or Study Page)
+        this.updateDisplay(Math.ceil(remainingMs / 1000));
+    },
+
+    updateDisplay: function (seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        const timeStr = `${m}:${s}`;
+
+        // Update Dashboard Main Widget
+        $('.timer-display').text(timeStr);
+
+        // Update Study Page Floating Widget (if exists)
+        $('#floating-timer-time').text(timeStr);
+
+        const isStarted = localStorage.getItem('mantra_qs_started');
+
+        if ($('#floating-study-timer').length) {
+            $('#floating-study-timer').css('display', isStarted === 'true' ? 'flex' : 'none');
+        }
+
+        // Update Document Title dynamically
+        if (isStarted === 'true') {
+            document.title = `(${timeStr}) Mantra | Study`;
+        } else {
+            document.title = `Mantra | Student Dashboard`;
+        }
+    },
+
+    updateButtonsUI: function (mode) {
+        const startBtn = $('.t-btn.start');
+        const breakBtn = $('.t-btn.break');
+
+        if (mode === 'study') {
+            startBtn.prop('disabled', true).text('Focusing...');
+            breakBtn.prop('disabled', false).text('Break');
+        } else if (mode === 'break') {
+            startBtn.prop('disabled', true).text('Start');
+            breakBtn.prop('disabled', true).text('Resting...');
+        } else {
+            // Idle
+            startBtn.prop('disabled', false).text('Start');
+            breakBtn.prop('disabled', true).text('Break');
+        }
+    },
+
+    completeTimer: function (mode) {
+        localStorage.setItem('mantra_qs_started', 'false');
+        localStorage.removeItem('mantra_qs_endtime');
+
+        if (mode === 'study') {
+            if (typeof window.MantraNotify !== 'undefined') {
+                window.MantraNotify.sendNotification("🎉 Session Complete!", {
+                    body: "Take a break. You earned it!"
+                });
+            }
+
+            // Log 25 minutes using the API
+            fetch('/api/study/complete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                body: JSON.stringify({ duration: this.intervals.study })
+            }).then(r => r.json()).then(res => {
+                if (res.success && typeof showToast !== 'undefined') showToast(`Session logged! +${res.xp} XP`, 'success');
+            });
+
+            this.updateDisplay(this.intervals.break);
+            this.updateButtonsUI('idle'); // Automatically enables break effectively manually
+            $('.t-btn.start').prop('disabled', false);
+            $('.t-btn.break').prop('disabled', false);
+
+        } else if (mode === 'break') {
+            if (typeof window.MantraNotify !== 'undefined') {
+                window.MantraNotify.sendNotification("⏰ Break Over!", {
+                    body: "Ready for the next session?"
+                });
+            }
+            this.updateDisplay(this.intervals.study);
+            this.updateButtonsUI('idle');
+        }
+    }
+};
+
+$(document).ready(function () {
+    QuickStudyTimer.init();
 });

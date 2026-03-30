@@ -207,4 +207,41 @@ class User extends Authenticatable
         $total = array_sum(array_column($attempts, 'score'));
         return round($total / count($attempts));
     }
+
+    // ── Chat & Friends Relationships ──
+
+    public function friends()
+    {
+        return $this->hasMany(Friend::class);
+    }
+
+    public function friendRequestsSent()
+    {
+        return $this->hasMany(FriendRequest::class, 'sender_id');
+    }
+
+    public function friendRequestsReceived()
+    {
+        return $this->hasMany(FriendRequest::class, 'receiver_id');
+    }
+
+    public function messagesSent()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function messagesReceived()
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+
+    public function blocks()
+    {
+        return $this->hasMany(Block::class, 'user_id');
+    }
+
+    public function blockedBy()
+    {
+        return $this->hasMany(Block::class, 'blocked_id');
+    }
 }

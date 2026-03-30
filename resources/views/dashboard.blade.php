@@ -13,7 +13,7 @@
         rel="stylesheet">
 
     <title>Mantra | Student Dashboard</title>
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/mantra.png') }}">
 
     <!-- Bootstrap core CSS -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -31,6 +31,12 @@
             <span class="sr-only">Loading...</span>
         </div>
     </div>
+    <script>
+        if (sessionStorage.getItem('skip_loader') === '1') {
+            document.getElementById('global-loader').style.display = 'none';
+            sessionStorage.removeItem('skip_loader');
+        }
+    </script>
     @auth {{-- Only logged-in users can see this page --}}
         <div class="dashboard-container">
             <!-- Sidebar -->
@@ -42,13 +48,7 @@
                     <i class="fa fa-bars" id="btn"></i>
                 </div>
                 <ul class="nav-list">
-                    <li>
-                        <a href="{{ url('/') }}">
-                            <i class="fa fa-home"></i>
-                            <span class="links_name">Home</span>
-                        </a>
-                        <span class="tooltip">Home</span>
-                    </li>
+
                     <li>
                         <a href="{{ route('dashboard') }}" class="active">
                             <i class="fa fa-th-large"></i>
@@ -78,6 +78,13 @@
                         <span class="tooltip">Progress</span>
                     </li>
                     <li>
+                        <a href="{{ route('chat') }}">
+                            <i class="fa fa-comments"></i>
+                            <span class="links_name">Chat</span>
+                        </a>
+                        <span class="tooltip">Chat</span>
+                    </li>
+                    <li>
                         <a href="{{ route('settings') }}">
                             <i class="fa fa-cog"></i>
                             <span class="links_name">Settings</span>
@@ -86,11 +93,6 @@
                     </li>
                     <li class="profile">
                         <div class="profile-details">
-                            <div class="profile-icon-wrap"
-                                style="width:36px;height:36px;background:rgba(92,124,250,0.18);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                <i class="fa fa-user"
-                                    style="font-size:16px;min-width:unset;height:unset;line-height:unset;color:#5C7CFA;"></i>
-                            </div>
                             <div class="name_job">
                                 <div class="name" id="user-name">{{ Auth::user()->name }}</div>
                                 <div class="job">{{ Auth::user()->email }}</div>
@@ -112,16 +114,38 @@
             <!-- Main Content -->
             <section class="home-section">
                 <!-- Top Header -->
-                <div class="top-bar">
+                <div class="top-bar" style="position: relative; z-index: 1050;">
                     <div class="text">Study. Focus. Achieve</div>
                     <div class="top-tools">
                         <div class="search-box">
                             <i class="fa fa-search"></i>
                             <input type="text" placeholder="Search...">
                         </div>
-                        <div class="icon-wrap">
+                        <div class="icon-wrap notification-wrap" style="position: relative; cursor: pointer; z-index: 1050;">
                             <i class="fa fa-bell"></i>
-                            <span class="badge">2</span>
+                            <span class="badge" id="notification-badge" style="display: none;">0</span>
+
+                            <!-- Notifications Dropdown -->
+                            <div class="notifications-dropdown" id="notifications-dropdown"
+                                style="display: none; position: absolute; top: 100%; right: -10px; width: 320px; background: var(--card-color, #1a1b21); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); z-index: 1000; margin-top: 15px; padding: 0; overflow: hidden; text-align: left;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);">
+                                    <h5 style="margin: 0; font-size: 15px; font-weight: 600; color: #fff;">Notifications
+                                    </h5>
+                                    <span id="mark-all-read"
+                                        style="font-size: 12px; color: var(--accent-teal, #00cec9); cursor: pointer; transition: 0.2s;">Clear
+                                        All</span>
+                                </div>
+                                <div id="notification-list" style="max-height: 320px; overflow-y: auto; padding: 10px;">
+                                    <div id="no-notifications-msg"
+                                        style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px 0; font-size: 13px;">
+                                        <i class="fa fa-bell-slash-o"
+                                            style="font-size: 24px; display: block; margin-bottom: 10px; opacity: 0.5;"></i>
+                                        You're all caught up!
+                                    </div>
+                                    <!-- Notification Items will be injected here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -149,95 +173,129 @@
                                     </div>
                                 </div>
                                 <div class="welcome-img">
-                                    <img src="images/mantra.png" alt="Welcome">
+                                    <img src="images/courses-01.jpg" alt="Welcome">
                                 </div>
                             </div>
 
-                            <!-- Smart Study Gen with Upload -->
-                            <div class="upload-section mt-4 mb-4">
-                                <div class="mb-3">
-                                    <h3>🚀 Smart Study Gen</h3>
-                                    <p class="text-muted">Upload your notes (PDF/Text) to generate an instant quiz.</p>
-                                </div>
+                            <!-- Smart Study Gen with Upload & Friend Requests -->
+                            <div class="row mt-4 mb-4">
+                                <div class="col-lg-7 mb-4 mb-lg-0">
+                                    <div class="upload-section h-100" style="margin: 0;">
+                                        <div class="mb-3">
+                                            <h3>🚀 Smart Study Gen</h3>
+                                            <p class="text-muted">Upload your notes (PDF/Text) to generate an instant quiz.
+                                            </p>
+                                        </div>
 
-                                <div class="upload-area" id="drop-area">
-                                    <i class="fa fa-cloud-upload upload-icon"></i>
-                                    <h3>Drag & Drop your materials here</h3>
-                                    <p>or <span class="highlight" style="color:var(--accent-teal); font-weight:600;">Browse
-                                            Files</span></p>
-                                    <input type="file" id="notes-file" style="display: none;"
-                                        accept=".txt,.pdf,.doc,.docx,.xls,.xlsx">
-                                    <p id="file-name" class="text-muted mt-2" style="font-size: 14px; display:none;"></p>
-                                    <div
-                                        style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:8px;">
-                                        <button class="btn-primary-small" id="btn-generate-quiz" style="display:none;">⚡
-                                            Generate Quiz</button>
-                                        <button class="btn-primary-small" id="btn-open-in-notes"
-                                            style="display:none; background:linear-gradient(135deg,#00b894,#00cec9);">📝
-                                            Open in Notes</button>
+                                        <div class="upload-area" id="drop-area">
+                                            <i class="fa fa-cloud-upload upload-icon"></i>
+                                            <h3>Drag & Drop your materials here</h3>
+                                            <p>or <span class="highlight"
+                                                    style="color:var(--accent-teal); font-weight:600;">Browse
+                                                    Files</span></p>
+                                            <input type="file" id="notes-file" style="display: none;"
+                                                accept=".txt,.pdf,.doc,.docx,.xls,.xlsx">
+                                            <p id="file-name" class="text-muted mt-2"
+                                                style="font-size: 14px; display:none;"></p>
+                                            <div
+                                                style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:8px;">
+                                                <button class="btn-primary-small" id="btn-generate-quiz"
+                                                    style="display:none;">⚡
+                                                    Generate Quiz</button>
+                                                <button class="btn-primary-small" id="btn-open-in-notes"
+                                                    style="display:none; background:linear-gradient(135deg,#00b894,#00cec9);">📝
+                                                    Open in Notes</button>
+                                            </div>
+                                        </div>
+
+                                        {{-- ===== SAVE TO NOTES MODAL ===== --}}
+                                        <div id="save-to-notes-overlay"
+                                            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center;">
+                                            <div
+                                                style="background:#1e2130; border-radius:16px; padding:32px; max-width:520px; width:94%; border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 60px rgba(0,0,0,0.6); max-height:90vh; overflow-y:auto;">
+                                                <h4 style="margin:0 0 4px; color:#fff; font-size:18px;">📄 Open in My Notes?
+                                                </h4>
+                                                <p
+                                                    style="color:rgba(255,255,255,0.55); font-size:13px; margin-bottom:20px;">
+                                                    We
+                                                    extracted the content below. Save it as an editable note?</p>
+
+                                                <div style="margin-bottom:14px;">
+                                                    <label
+                                                        style="color:rgba(255,255,255,0.7); font-size:11px; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:6px;">Note
+                                                        Title</label>
+                                                    <input type="text" id="stn-title" placeholder="Note title..."
+                                                        style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:14px; outline:none; box-sizing:border-box;">
+                                                </div>
+
+                                                <div style="margin-bottom:14px;">
+                                                    <label
+                                                        style="color:rgba(255,255,255,0.7); font-size:11px; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:6px;">Content
+                                                        Preview <span
+                                                            style="color:rgba(255,255,255,0.35); text-transform:none; font-size:10px;">(editable)</span></label>
+                                                    <textarea id="stn-preview" rows="7" placeholder="(No text extracted)"
+                                                        style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); color:#ccc; font-size:13px; outline:none; box-sizing:border-box; resize:vertical; font-family:inherit; line-height:1.5;"></textarea>
+                                                </div>
+
+                                                <div style="margin-bottom:22px;">
+                                                    <label
+                                                        style="color:rgba(255,255,255,0.7); font-size:11px; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:6px;">Save
+                                                        to Folder</label>
+                                                    <select id="stn-folder-select"
+                                                        style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:#1e2130; color:#fff; font-size:14px; outline:none; box-sizing:border-box;">
+                                                        <option value="">📂 No Folder (General)</option>
+                                                    </select>
+                                                </div>
+
+                                                <div id="stn-progress"
+                                                    style="display:none; margin-bottom:14px; text-align:center; color:#00b894; font-size:13px;">
+                                                    <i class="fa fa-spinner fa-spin"></i> Saving &amp; uploading...
+                                                </div>
+
+                                                <div style="display:flex; gap:12px; justify-content:flex-end;">
+                                                    <button id="stn-cancel"
+                                                        style="padding:10px 20px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:rgba(255,255,255,0.7); cursor:pointer; font-size:14px;">Cancel</button>
+                                                    <button id="stn-save"
+                                                        style="padding:10px 24px; border-radius:8px; border:none; background:linear-gradient(135deg,#00b894,#00cec9); color:#fff; font-weight:600; cursor:pointer; font-size:14px;">✅
+                                                        Save &amp; Open Note</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Quiz Container (Hidden initially) -->
+                                        <div id="quiz-container"
+                                            style="display: none; margin-top: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
+                                            <h3 id="quiz-title">Generated Quiz</h3>
+                                            <div id="quiz-questions"></div>
+                                            <button class="btn btn-success mt-3" id="btn-submit-quiz">Submit
+                                                Answers</button>
+                                            <div id="quiz-result" class="mt-3" style="display:none;"></div>
+                                        </div>
                                     </div>
-                                </div>
+                                </div> <!-- End col-lg-7 -->
 
-                                {{-- ===== SAVE TO NOTES MODAL ===== --}}
-                                <div id="save-to-notes-overlay"
-                                    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center;">
-                                    <div
-                                        style="background:#1e2130; border-radius:16px; padding:32px; max-width:520px; width:94%; border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 60px rgba(0,0,0,0.6); max-height:90vh; overflow-y:auto;">
-                                        <h4 style="margin:0 0 4px; color:#fff; font-size:18px;">📄 Open in My Notes?</h4>
-                                        <p style="color:rgba(255,255,255,0.55); font-size:13px; margin-bottom:20px;">We
-                                            extracted the content below. Save it as an editable note?</p>
-
-                                        <div style="margin-bottom:14px;">
-                                            <label
-                                                style="color:rgba(255,255,255,0.7); font-size:11px; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:6px;">Note
-                                                Title</label>
-                                            <input type="text" id="stn-title" placeholder="Note title..."
-                                                style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:14px; outline:none; box-sizing:border-box;">
+                                <div class="col-lg-5">
+                                    <div class="content-card h-100"
+                                        style="margin-bottom:0; display: flex; flex-direction: column;">
+                                        <div class="card-header d-flex justify-content-between align-items-center"
+                                            style="padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                            <h3 style="margin:0;"><i class="fa fa-user-plus"
+                                                    style="margin-right:8px; color: #5C7CFA;"></i>Friend Requests</h3>
+                                            <a href="{{ route('chat') }}" class="btn btn-sm btn-primary"
+                                                style="background: rgba(92,124,250,0.1); color: #5C7CFA; border: none; font-weight: 600;">View
+                                                All</a>
                                         </div>
-
-                                        <div style="margin-bottom:14px;">
-                                            <label
-                                                style="color:rgba(255,255,255,0.7); font-size:11px; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:6px;">Content
-                                                Preview <span
-                                                    style="color:rgba(255,255,255,0.35); text-transform:none; font-size:10px;">(editable)</span></label>
-                                            <textarea id="stn-preview" rows="7" placeholder="(No text extracted)"
-                                                style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); color:#ccc; font-size:13px; outline:none; box-sizing:border-box; resize:vertical; font-family:inherit; line-height:1.5;"></textarea>
-                                        </div>
-
-                                        <div style="margin-bottom:22px;">
-                                            <label
-                                                style="color:rgba(255,255,255,0.7); font-size:11px; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:6px;">Save
-                                                to Folder</label>
-                                            <select id="stn-folder-select"
-                                                style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:#1e2130; color:#fff; font-size:14px; outline:none; box-sizing:border-box;">
-                                                <option value="">📂 No Folder (General)</option>
-                                            </select>
-                                        </div>
-
-                                        <div id="stn-progress"
-                                            style="display:none; margin-bottom:14px; text-align:center; color:#00b894; font-size:13px;">
-                                            <i class="fa fa-spinner fa-spin"></i> Saving &amp; uploading...
-                                        </div>
-
-                                        <div style="display:flex; gap:12px; justify-content:flex-end;">
-                                            <button id="stn-cancel"
-                                                style="padding:10px 20px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:rgba(255,255,255,0.7); cursor:pointer; font-size:14px;">Cancel</button>
-                                            <button id="stn-save"
-                                                style="padding:10px 24px; border-radius:8px; border:none; background:linear-gradient(135deg,#00b894,#00cec9); color:#fff; font-weight:600; cursor:pointer; font-size:14px;">✅
-                                                Save &amp; Open Note</button>
+                                        <div id="dashboard-requests-list" class="list-group list-group-flush"
+                                            style="flex: 1; overflow-y: auto;">
+                                            <div class="text-center p-3 text-muted" style="margin-top: 40px;">
+                                                <div class="spinner-border spinner-border-sm"
+                                                    style="color:#5C7CFA; margin-bottom: 10px;"></div><br>
+                                                Loading requests...
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <!-- Quiz Container (Hidden initially) -->
-                                <div id="quiz-container"
-                                    style="display: none; margin-top: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
-                                    <h3 id="quiz-title">Generated Quiz</h3>
-                                    <div id="quiz-questions"></div>
-                                    <button class="btn btn-success mt-3" id="btn-submit-quiz">Submit Answers</button>
-                                    <div id="quiz-result" class="mt-3" style="display:none;"></div>
-                                </div>
-                            </div>
+                                </div> <!-- End col-lg-5 -->
+                            </div> <!-- End row for Study Gen + Requests -->
                         </div>
                         <div class="col-md-4">
                             <div class="stat-card urgent" id="todays-focus-card">
@@ -388,19 +446,16 @@
                                 </div>
                                 <hr style="border-color: rgba(255,255,255,0.1);">
                                 <div class="tools-grid">
-                                    <div class="tool-item tool-map">
-                                        <span class="emoji">🧠</span>
-                                        <span>Mind Map</span>
-                                    </div>
-                                    <div class="tool-item tool-flashcards">
-                                        <span class="emoji">🃏</span>
-                                        <span>Flashcards</span>
-                                    </div>
-                                    <div class="tool-item tool-notes">
+                                    <a href="{{ route('study') }}" class="tool-item tool-calendar"
+                                        style="text-decoration:none;">
+                                        <span class="emoji">📅</span>
+                                        <span>Calendar</span>
+                                    </a>
+                                    <a href="{{ route('study') }}#smart-notes-app" class="tool-item tool-notes"
+                                        style="text-decoration:none;">
                                         <span class="emoji">📝</span>
                                         <span>Notes</span>
-                                    </div>
-
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -519,8 +574,11 @@
     <script>
         window.userStickers = @json(Auth::user()->stickers ?? []);
         window.userLevel = {{ Auth::user()->level }};
+        window.MANTRA_USER_ID = '{{ Auth::user()->id }}';
     </script>
-    <script src="{{ asset('js/dashboard.js') }}?v=5"></script>
+    <script src="{{ asset('js/notifications.js') }}?v=2"></script>
+
+    <script src="{{ asset('js/dashboard.js') }}?v=6"></script>
     <script>
         // Apply saved appearance prefs from localStorage
         (function () {
@@ -531,6 +589,411 @@
             }
         })();
     </script>
+
+    <!-- Dashboard Friend Requests Widget Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const reqList = document.getElementById('dashboard-requests-list');
+            if (reqList) {
+                fetch('/chat/requests')
+                    .then(res => res.json())
+                    .then(data => {
+                        reqList.innerHTML = '';
+                        if (data.length === 0) {
+                            reqList.innerHTML = `<div class="text-center p-3 text-muted" style="margin-top: 40px;"><i class="fa fa-users" style="font-size: 28px; opacity: 0.2; margin-bottom: 12px; display: block;"></i> You have no pending friend requests.</div>`;
+                            return;
+                        }
+
+                        data.forEach(req => {
+                            const initial = req.sender_name.charAt(0).toUpperCase();
+                            const item = document.createElement('div');
+                            item.style = "display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); gap: 12px; transition: background 0.2s;";
+                            item.onmouseover = () => item.style.background = 'rgba(255,255,255,0.02)';
+                            item.onmouseout = () => item.style.background = 'transparent';
+
+                            item.innerHTML = `
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #5C7CFA, #3754db); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; flex-shrink: 0;">${initial}</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <h5 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-main, #fff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${req.sender_name}</h5>
+                                    <span style="font-size: 12px; color: var(--text-muted, rgba(255,255,255,0.4));">${req.time_ago}</span>
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <a href="/chat" class="btn btn-sm btn-primary" style="background: #00B894; color: #fff; border: none; padding: 5px 12px; font-size: 12px; font-weight: 600; border-radius: 6px;">Respond</a>
+                                </div>
+                            `;
+                            reqList.appendChild(item);
+                        });
+                    }).catch(err => {
+                        reqList.innerHTML = `<div class="text-center p-3 text-muted">Failed to load requests.</div>`;
+                        console.error("Failed to fetch dashboard requests:", err);
+                    });
+            }
+        });
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PREMIUM ANIMATION LAYER — no content changes
+    ═══════════════════════════════════════════════════════ -->
+    <style>
+        /* ── Sidebar nav items stagger in from left ── */
+        .nav-list>li {
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: sidebarItemIn 0.5s cubic-bezier(.22, 1, .36, 1) forwards;
+        }
+
+        .nav-list>li:nth-child(1) {
+            animation-delay: 0.15s;
+        }
+
+        .nav-list>li:nth-child(2) {
+            animation-delay: 0.22s;
+        }
+
+        .nav-list>li:nth-child(3) {
+            animation-delay: 0.29s;
+        }
+
+        .nav-list>li:nth-child(4) {
+            animation-delay: 0.36s;
+        }
+
+        .nav-list>li:nth-child(5) {
+            animation-delay: 0.43s;
+        }
+
+        .nav-list>li:nth-child(6) {
+            animation-delay: 0.50s;
+        }
+
+        .nav-list>li:nth-child(7) {
+            animation-delay: 0.57s;
+        }
+
+        .nav-list>li.profile {
+            animation-delay: 0.64s;
+        }
+
+        @keyframes sidebarItemIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ── Logo area slides in ── */
+        .logo-details {
+            opacity: 0;
+            animation: logoIn 0.6s 0.05s cubic-bezier(.22, 1, .36, 1) forwards;
+        }
+
+        @keyframes logoIn {
+            from {
+                opacity: 0;
+                transform: translateY(-12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Top bar slides down ── */
+        .top-bar {
+            opacity: 0;
+            animation: topBarIn 0.6s 0.1s ease forwards;
+        }
+
+        @keyframes topBarIn {
+            from {
+                opacity: 0;
+                transform: translateY(-16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Welcome card ── */
+        .welcome-card {
+            opacity: 0;
+            animation: wElcomeIn 0.7s 0.25s cubic-bezier(.22, 1, .36, 1) forwards;
+        }
+
+        @keyframes wElcomeIn {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Greeting text character shimmer on load ── */
+        #greeting {
+            background-size: 200% auto;
+            animation: greetShimmer 2.5s 0.8s ease forwards;
+        }
+
+        @keyframes greetShimmer {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Today's focus card ── */
+        #todays-focus-card {
+            opacity: 0;
+            animation: wElcomeIn 0.7s 0.4s cubic-bezier(.22, 1, .36, 1) forwards;
+        }
+
+        /* ── Stat mini cards stagger ── */
+        .stat-mini-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .stat-mini-card.ani-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Content cards ── */
+        .content-card {
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity 0.65s ease, transform 0.65s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .content-card.ani-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Upload section ── */
+        .upload-section {
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity 0.65s ease, transform 0.65s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .upload-section.ani-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Stat value count-up ── */
+        .stat-mini-card .text-box h4 {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Subtle card hover lift ── */
+        .stat-mini-card,
+        .content-card,
+        .upload-section {
+            transition: opacity 0.65s ease, transform 0.65s cubic-bezier(.22, 1, .36, 1), box-shadow 0.3s ease !important;
+        }
+
+        .stat-mini-card:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        .content-card:hover,
+        .upload-section:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* ── Sidebar nav item hover glow ── */
+        .nav-list>li>a {
+            transition: background 0.25s ease, padding-left 0.25s ease !important;
+        }
+
+        .nav-list>li>a:hover {
+            background: rgba(245, 164, 37, 0.07) !important;
+        }
+
+        /* ── Top-bar text subtle pulse ── */
+        .top-bar .text {
+            animation: textPulse 3s 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes textPulse {
+            from {
+                opacity: 0.7;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ── Dashboard entry animation from intro page ── */
+        body.dashboard-entry .home-section,
+        body.dashboard-entry .sidebar {
+            animation: entrySlide 0.9s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @keyframes entrySlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <script>
+        (function () {
+            /* ── Apply entry class if coming from intro video ── */
+            if (sessionStorage.getItem('dashboard_entry') === '1') {
+                document.body.classList.add('dashboard-entry');
+                sessionStorage.removeItem('dashboard_entry');
+            }
+
+            /* ── IntersectionObserver for staggered card reveal ── */
+            document.addEventListener('DOMContentLoaded', function () {
+                var io = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            var el = entry.target;
+                            var delay = parseFloat(el.dataset.aniDelay || 0);
+                            setTimeout(function () {
+                                el.classList.add('ani-visible');
+                            }, delay);
+                            io.unobserve(el);
+                        }
+                    });
+                }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+
+                /* Tag stat mini cards */
+                document.querySelectorAll('.stat-mini-card').forEach(function (el, i) {
+                    el.dataset.aniDelay = (i * 100).toString();
+                    io.observe(el);
+                });
+
+                /* Tag content cards */
+                document.querySelectorAll('.content-card').forEach(function (el, i) {
+                    el.dataset.aniDelay = (i * 120).toString();
+                    io.observe(el);
+                });
+
+                /* Tag upload sections */
+                document.querySelectorAll('.upload-section').forEach(function (el, i) {
+                    el.dataset.aniDelay = (i * 100).toString();
+                    io.observe(el);
+                });
+
+                /* ── Count-up animation for numeric stat values ── */
+                function countUp(el, target, duration) {
+                    var isFloat = String(target).includes('h') || String(target).includes('m') || String(target).includes('XP') || String(target).includes('Day') || String(target).includes('%');
+                    if (isFloat) return; // skip non-pure numbers
+                    var start = 0;
+                    var end = parseInt(target) || 0;
+                    if (end === 0) return;
+                    var step = end / (duration / 16);
+                    var original = el.textContent;
+                    var suffix = original.replace(/[\d]/g, '').trim();
+                    function tick() {
+                        start = Math.min(start + step, end);
+                        el.textContent = Math.round(start) + (suffix ? ' ' + suffix : '');
+                        if (start < end) requestAnimationFrame(tick);
+                    }
+                    el.textContent = '0' + (suffix ? ' ' + suffix : '');
+                    setTimeout(tick, 400);
+                }
+
+                document.querySelectorAll('.stat-mini-card .text-box h4').forEach(function (el) {
+                    var txt = el.textContent.trim();
+                    /* Try XP */
+                    var xpMatch = txt.match(/^(\d+)\s*XP$/);
+                    if (xpMatch) {
+                        countUp(el, parseInt(xpMatch[1]), 1200);
+                        return;
+                    }
+                });
+
+            });
+        })();
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════
+         APP-OPEN TIME HEARTBEAT — tracks passive study time
+    ═══════════════════════════════════════════════════════ -->
+    <script>
+    (function () {
+        var HEARTBEAT_INTERVAL = 60; // seconds between each ping
+        var csrfToken = document.querySelector('meta[name="csrf-token"]')
+                            ? document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            : '';
+
+        // How many seconds elapsed since last ping (accounts for tab visibility)
+        var elapsed = 0;
+        var tickInterval = null;
+
+        function startTicking() {
+            if (tickInterval) return;
+            tickInterval = setInterval(function () {
+                if (document.visibilityState === 'hidden') return; // tab not visible
+                elapsed++;
+                if (elapsed >= HEARTBEAT_INTERVAL) {
+                    sendHeartbeat(elapsed);
+                    elapsed = 0;
+                }
+            }, 1000);
+        }
+
+        function sendHeartbeat(seconds) {
+            fetch('/api/heartbeat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ seconds: seconds }),
+                keepalive: true
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    // Live-update the displayed study time stat card
+                    var el = document.getElementById('study-time-display');
+                    if (el) el.textContent = data.total_time;
+                }
+            })
+            .catch(function () { /* silent fail — network issue */ });
+        }
+
+        // Send remaining time when tab is closed / navigated away
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden' && elapsed > 5) {
+                sendHeartbeat(elapsed);
+                elapsed = 0;
+            }
+        });
+
+        // Start the ticker
+        startTicking();
+    })();
+    </script>
+
 </body>
 
 </html>

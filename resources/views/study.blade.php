@@ -478,6 +478,11 @@
             width: 100%;
         }
 
+        .form-control-dark option {
+            background: var(--cal-bg);
+            color: var(--cal-text);
+        }
+
         .form-control-dark:focus {
             outline: none;
             border-color: var(--cal-study);
@@ -1270,13 +1275,7 @@
                 <i class="fa fa-bars" id="btn"></i>
             </div>
             <ul class="nav-list">
-                <li>
-                    <a href="{{ url('/') }}">
-                        <i class="fa fa-home"></i>
-                        <span class="links_name">Home</span>
-                    </a>
-                    <span class="tooltip">Home</span>
-                </li>
+
                 <li>
                     <a href="{{ route('dashboard') }}">
                         <i class="fa fa-th-large"></i>
@@ -1306,6 +1305,13 @@
                     <span class="tooltip">Progress</span>
                 </li>
                 <li>
+                    <a href="{{ route('chat') }}">
+                        <i class="fa fa-comments"></i>
+                        <span class="links_name">Chat</span>
+                    </a>
+                    <span class="tooltip">Chat</span>
+                </li>
+                <li>
                     <a href="{{ route('settings') }}">
                         <i class="fa fa-cog"></i>
                         <span class="links_name">Settings</span>
@@ -1314,11 +1320,6 @@
                 </li>
                 <li class="profile">
                     <div class="profile-details">
-                        <div class="profile-icon-wrap"
-                            style="width:36px;height:36px;background:rgba(92,124,250,0.18);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="fa fa-user"
-                                style="font-size:16px;min-width:unset;height:unset;line-height:unset;color:#5C7CFA;"></i>
-                        </div>
                         <div class="name_job">
                             <div class="name" id="user-name">{{ Auth::user()->name ?? 'Student' }}</div>
                             <div class="job">Learner</div>
@@ -1830,6 +1831,15 @@
         </div>
     </div>
 
+    <!-- Floating Study Timer -->
+    <div id="floating-study-timer"
+        style="position: fixed; bottom: 110px; right: 20px; border-radius: 50px; padding: 10px 20px; background: linear-gradient(135deg, #5C7CFA, #4B6BF5); color: white; display: none; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(92, 124, 250, 0.4); z-index: 5000; transition: all 0.3s ease; cursor: pointer;"
+        title="Active Study Session">
+        <i class="fa fa-clock-o" style="font-size: 20px;"></i>
+        <span id="floating-timer-time"
+            style="font-size: 18px; font-weight: 700; font-family: 'Poppins', sans-serif; letter-spacing: 1px;">25:00</span>
+    </div>
+
     <!-- Scripts -->
     <script src="{{ asset('jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('bootstrap/js/bootstrap.min.js') }}"></script>
@@ -1847,10 +1857,6 @@
                 }, 500);
             }
 
-            // Sidebar toggle
-            $('#btn').click(function () {
-                $('.sidebar').toggleClass('open');
-            });
         });
     </script>
     <script>
