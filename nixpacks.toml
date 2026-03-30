@@ -1,11 +1,14 @@
 [phases.setup]
 nixPkgs = ["php", "composer"]
 
+[phases.install]
+cmds = ["composer install --no-dev --optimize-autoloader"]
+
 [phases.build]
 cmds = [
-  "composer install --no-dev --optimize-autoloader",
   "php artisan key:generate",
-  "php artisan config:cache"
+  "php artisan config:cache",
+  "php artisan migrate --force"
 ]
 
 [start]
