@@ -5,3 +5,5 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'owl.carousel/dist/assets/owl.carousel.css';
 import 'owl.carousel';
 import AOS from 'aos';
+import $ from 'jquery';
+window.$ = window.jQuery = $;
