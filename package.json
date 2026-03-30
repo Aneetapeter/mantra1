@@ -1,5 +1,21 @@
 {
-  "dependencies": {
-    "jquery": "^4.0.0"
-  }
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.0.0",
+        "axios": "^1.11.0",
+        "laravel-vite-plugin": "^1.0.0",
+        "tailwindcss": "^4.0.0",
+        "vite": "^5.0.0"
+    },
+    "dependencies": {
+        "aos": "^2.3.4",
+        "bootstrap": "^5.3.8",
+        "jquery": "^3.7.1",
+        "owl.carousel": "^2.3.4"
+    }
 }
