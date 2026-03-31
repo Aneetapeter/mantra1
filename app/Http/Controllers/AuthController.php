@@ -45,9 +45,9 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-        // Redirect to login after register
-        Auth::login($user);
-        return redirect()->route('dashboard.intro');
+
+        // Redirect to login with success message
+        return redirect()->route('login')->with('success', 'Registration successful! Please log in.');
 
     }
 

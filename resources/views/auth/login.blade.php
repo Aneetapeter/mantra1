@@ -733,10 +733,10 @@
             <h2 class="fh-title">Sign In</h2>
             <p class="fh-sub">Enter your credentials to continue.</p>
 
-            @if(session('info'))
+            @if(session('info') || session('success'))
                 <div class="alert-box alert-success">
                     <i class="fa fa-check-circle"></i>
-                    <span>{{ session('info') }}</span>
+                    <span>{{ session('success') ?? session('info') }}</span>
                 </div>
             @endif
 
