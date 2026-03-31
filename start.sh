@@ -2,25 +2,37 @@
 
 echo "==> Starting Mantra..."
 
-# Step 1: Determine DB connection
-# Priority: DATABASE_URL > POSTGRES_URL > individual DB_* vars > PG_* vars
+# ─── Resolve DB connection ────────────────────────────────────────────────────
+# Priority: DATABASE_URL > POSTGRES_URL > individual DB_* > PG_* vars
 
-# Map Railway/Render PG* vars → Laravel DB_* vars (as fallback)
 DB_HOST="${DB_HOST:-${PGHOST:-127.0.0.1}}"
 DB_PORT="${DB_PORT:-${PGPORT:-5432}}"
 DB_DATABASE="${DB_DATABASE:-${PGDATABASE:-${POSTGRES_DB:-laravel}}}"
 DB_USERNAME="${DB_USERNAME:-${PGUSER:-${POSTGRES_USER:-postgres}}}"
 DB_PASSWORD="${DB_PASSWORD:-${PGPASSWORD:-${POSTGRES_PASSWORD:-}}}"
 
-# Use DATABASE_URL or POSTGRES_URL if provided (Render/Railway inject these)
-DB_URL="${DATABASE_URL:-${POSTGRES_URL:-}}"
-
-echo "==> DB: ${DB_USERNAME}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
-if [ -n "$DB_URL" ]; then
-    echo "==> DATABASE_URL found — using full connection URL"
+# Auto-fix Render internal hostname → external (resolves DNS failure)
+# Render internal: dpg-xxx-a  →  External: dpg-xxx-a.oregon-postgres.render.com
+if echo "$DB_HOST" | grep -qE '^dpg-' && ! echo "$DB_HOST" | grep -q '\.'; then
+    DB_HOST="${DB_HOST}.oregon-postgres.render.com"
+    echo "==> Render host converted to external: ${DB_HOST}"
 fi
 
-# Step 2: Write .env for Laravel to boot
+# Use full DATABASE_URL if injected (Render/Railway provide this)
+DB_URL="${DATABASE_URL:-${POSTGRES_URL:-}}"
+
+# If DATABASE_URL has internal Render hostname, rebuild it with external host
+if echo "$DB_URL" | grep -qE 'dpg-[a-z0-9]+-[a-z]/' && ! echo "$DB_URL" | grep -q 'render\.com'; then
+    # Replace internal host in URL with external host
+    INTERNAL_HOST=$(echo "$DB_URL" | sed 's|.*@||' | sed 's|:.*||')
+    EXTERNAL_HOST="${INTERNAL_HOST}.oregon-postgres.render.com"
+    DB_URL=$(echo "$DB_URL" | sed "s|${INTERNAL_HOST}|${EXTERNAL_HOST}|")
+    echo "==> DATABASE_URL host converted to external"
+fi
+
+echo "==> DB: ${DB_USERNAME}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
+
+# ─── Write .env ──────────────────────────────────────────────────────────────
 cat > /app/.env << ENVEOF
 APP_NAME=${APP_NAME:-Mantra}
 APP_ENV=${APP_ENV:-production}
@@ -66,23 +78,21 @@ ENVEOF
 
 echo "==> .env written"
 
-# Step 3: Clear stale config
+# ─── Bootstrap ───────────────────────────────────────────────────────────────
 php artisan config:clear 2>&1 || true
 php artisan cache:clear 2>&1 || true
-
-# Step 4: Storage symlink
 php artisan storage:link --force 2>&1 || true
 
-# Step 5: Migrations
+# ─── Migrate ─────────────────────────────────────────────────────────────────
 echo "==> Running migrations..."
 php artisan migrate --force 2>&1
 if [ $? -eq 0 ]; then
     echo "==> Migrations OK"
 else
-    echo "==> WARNING: Migrations failed — DB may not be ready or credentials wrong"
+    echo "==> WARNING: Migrations failed"
 fi
 
-# Step 6: Start server
+# ─── Start server ────────────────────────────────────────────────────────────
 PORT="${PORT:-8080}"
-echo "==> Serving on http://0.0.0.0:${PORT}"
+echo "==> Live on port ${PORT}"
 exec php artisan serve --host=0.0.0.0 --port="${PORT}"
