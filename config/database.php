@@ -2,6 +2,20 @@
 
 use Illuminate\Support\Str;
 
+// Auto-fix: Convert Render internal PostgreSQL hostname → external FQDN
+// Render internal: dpg-xxx-a  →  External: dpg-xxx-a.oregon-postgres.render.com
+// This fixes "could not translate host name" DNS errors on Render deployments
+(function () {
+    $host = env('DB_HOST', '');
+    if ($host && preg_match('/^dpg-[a-z0-9]+-[a-z]+$/', $host) && !str_contains($host, '.')) {
+        // Determine region from Render's RENDER_REGION or default to oregon
+        $region = getenv('RENDER_REGION') ?: 'oregon';
+        putenv("DB_HOST={$host}.{$region}-postgres.render.com");
+        $_ENV['DB_HOST'] = "{$host}.{$region}-postgres.render.com";
+        $_SERVER['DB_HOST'] = "{$host}.{$region}-postgres.render.com";
+    }
+})();
+
 return [
 
     /*
