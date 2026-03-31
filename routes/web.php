@@ -140,4 +140,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/chat/unblock', [App\Http\Controllers\ChatController::class, 'unblockUser']);
     Route::get('/chat/blocked', [App\Http\Controllers\ChatController::class, 'getBlocked']);
     Route::get('/chat/profile/{id}', [App\Http\Controllers\ChatController::class, 'getUserProfile']);
+
+    // ── Quiz Routes ──
+    Route::post('/api/quiz/generate', [App\Http\Controllers\QuizController::class, 'generate'])->name('quiz.generate');
+    Route::post('/api/quiz/complete', [App\Http\Controllers\QuizController::class, 'complete'])->name('quiz.complete');
+
+    // ── Profile Page ──
+    Route::get('/profile', function () {
+        return view('profile');
+    })->name('profile');
 });
