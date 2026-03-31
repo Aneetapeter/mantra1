@@ -57,6 +57,9 @@ echo "==> .env written successfully"
 php artisan config:clear
 php artisan cache:clear
 
+# Step 4: Create storage symlink (needed for file uploads/PDFs)
+php artisan storage:link --force 2>/dev/null || true
+
 # Step 4: Run migrations
 echo "==> Running migrations..."
 if php artisan migrate --force; then
