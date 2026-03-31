@@ -1,9 +1,8 @@
 #!/bin/sh
-set -e
 
 echo "==> Starting Mantra on Railway..."
 
-# Step 1: Map Railway PostgreSQL plugin vars → Laravel DB vars
+# Step 1: Map Railway PostgreSQL plugin vars to Laravel DB vars
 DB_HOST="${DB_HOST:-${PGHOST:-127.0.0.1}}"
 DB_PORT="${DB_PORT:-${PGPORT:-5432}}"
 DB_DATABASE="${DB_DATABASE:-${PGDATABASE:-laravel}}"
@@ -12,7 +11,7 @@ DB_PASSWORD="${DB_PASSWORD:-${PGPASSWORD:-}}"
 
 echo "==> DB: ${DB_USERNAME}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
 
-# Step 2: Write .env so Laravel can boot (artisan needs this file)
+# Step 2: Write .env so Laravel artisan can boot correctly
 cat > /app/.env << ENVEOF
 APP_NAME=${APP_NAME:-Mantra}
 APP_ENV=${APP_ENV:-production}
@@ -32,6 +31,9 @@ DB_PASSWORD=${DB_PASSWORD}
 
 SESSION_DRIVER=${SESSION_DRIVER:-file}
 SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=
 
 BROADCAST_CONNECTION=log
 FILESYSTEM_DISK=local
@@ -51,25 +53,25 @@ GEMINI_API_KEY=${GEMINI_API_KEY:-}
 VITE_APP_NAME=Mantra
 ENVEOF
 
-echo "==> .env written successfully"
+echo "==> .env written"
 
-# Step 3: Clear any stale cached config
-php artisan config:clear
-php artisan cache:clear
+# Step 3: Clear stale config/cache (non-fatal)
+php artisan config:clear 2>&1 || echo "config:clear warning (non-fatal)"
+php artisan cache:clear 2>&1 || echo "cache:clear warning (non-fatal)"
 
-# Step 4: Create storage symlink (needed for file uploads/PDFs)
-php artisan storage:link --force 2>/dev/null || true
+# Step 4: Storage symlink for file uploads
+php artisan storage:link --force 2>&1 || echo "storage:link warning (non-fatal)"
 
-# Step 4: Run migrations
+# Step 5: Run migrations (non-fatal - server must start even if DB not ready)
 echo "==> Running migrations..."
-if php artisan migrate --force; then
+php artisan migrate --force 2>&1
+if [ $? -eq 0 ]; then
     echo "==> Migrations OK"
 else
-    echo "==> WARNING: Migrations failed - check DB connection"
-    echo "==> DB_HOST=${DB_HOST} DB_DATABASE=${DB_DATABASE}"
+    echo "==> WARNING: Migrations failed - app will run but DB features may not work"
 fi
 
-# Step 5: Start server
+# Step 6: Start the web server
 PORT="${PORT:-8080}"
-echo "==> Serving on http://0.0.0.0:${PORT}"
+echo "==> Serving on port ${PORT}..."
 exec php artisan serve --host=0.0.0.0 --port="${PORT}"
