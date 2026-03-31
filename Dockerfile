@@ -1,29 +1,43 @@
-FROM php:8.2-cli
+FROM php:8.2-fpm-alpine
 
-RUN apt-get update && apt-get install -y \
-    git unzip curl libpq-dev nodejs npm
+# Install system dependencies
+RUN apk add --no-cache \
+    git curl unzip bash \
+    postgresql-dev \
+    nodejs npm \
+    oniguruma-dev \
+    libxml2-dev
 
-RUN docker-php-ext-install pdo pdo_pgsql
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_pgsql mbstring xml bcmath
 
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
+# Copy composer files first for layer caching
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+# Copy package files and build frontend
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy rest of app
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader
-RUN npm install && npm run build
+# Run composer scripts after full copy
+RUN composer run-script post-autoload-dump || true
 
+# Build frontend assets
+RUN npm run build
+
+# Set permissions
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache \
+    && chmod +x start.sh
 
-RUN chmod +x start.sh
+EXPOSE 8080
 
-ENV APP_ENV=production
-ENV LOG_CHANNEL=stderr
-ENV CACHE_STORE=file
-ENV SESSION_DRIVER=file
-
-EXPOSE 10000
-
-CMD ["/bin/sh", "start.sh"]
+CMD ["sh", "start.sh"]

@@ -1,63 +1,33 @@
 #!/bin/sh
 set -e
 
-echo "==> Mantra startup..."
+echo "==> Starting Mantra..."
 
-# Map Railway's auto-injected PG* vars to Laravel DB_* vars (if DB_* not explicitly set)
-DB_HOST="${DB_HOST:-$PGHOST}"
-DB_PORT="${DB_PORT:-$PGPORT}"
-DB_DATABASE="${DB_DATABASE:-$PGDATABASE}"
-DB_USERNAME="${DB_USERNAME:-$PGUSER}"
-DB_PASSWORD="${DB_PASSWORD:-$PGPASSWORD}"
-DB_CONNECTION="${DB_CONNECTION:-pgsql}"
+# Map Railway PostgreSQL plugin vars → Laravel DB vars (if not already set)
+export DB_CONNECTION="${DB_CONNECTION:-pgsql}"
+export DB_HOST="${DB_HOST:-${PGHOST:-127.0.0.1}}"
+export DB_PORT="${DB_PORT:-${PGPORT:-5432}}"
+export DB_DATABASE="${DB_DATABASE:-${PGDATABASE:-mantra}}"
+export DB_USERNAME="${DB_USERNAME:-${PGUSER:-postgres}}"
+export DB_PASSWORD="${DB_PASSWORD:-${PGPASSWORD:-}}"
 
-# Generate .env from all available environment variables
-cat > .env <<EOF
-APP_NAME=${APP_NAME:-Mantra}
-APP_ENV=${APP_ENV:-production}
-APP_KEY=${APP_KEY}
-APP_DEBUG=${APP_DEBUG:-false}
-APP_URL=${APP_URL:-http://localhost}
+# Set production defaults
+export APP_ENV="${APP_ENV:-production}"
+export LOG_CHANNEL="${LOG_CHANNEL:-stderr}"
+export SESSION_DRIVER="${SESSION_DRIVER:-file}"
+export CACHE_STORE="${CACHE_STORE:-file}"
 
-LOG_CHANNEL=${LOG_CHANNEL:-stderr}
-LOG_LEVEL=${LOG_LEVEL:-debug}
+echo "==> DB: ${DB_USERNAME}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
 
-DB_CONNECTION=pgsql
-DB_HOST=${DB_HOST}
-DB_PORT=${DB_PORT:-5432}
-DB_DATABASE=${DB_DATABASE}
-DB_USERNAME=${DB_USERNAME}
-DB_PASSWORD=${DB_PASSWORD}
-DATABASE_URL=${DATABASE_URL}
-
-SESSION_DRIVER=${SESSION_DRIVER:-file}
-SESSION_LIFETIME=120
-
-BROADCAST_CONNECTION=log
-FILESYSTEM_DISK=local
-QUEUE_CONNECTION=${QUEUE_CONNECTION:-sync}
-CACHE_STORE=${CACHE_STORE:-file}
-
-MAIL_MAILER=${MAIL_MAILER:-smtp}
-MAIL_HOST=${MAIL_HOST:-smtp-relay.brevo.com}
-MAIL_PORT=${MAIL_PORT:-587}
-MAIL_USERNAME=${MAIL_USERNAME}
-MAIL_PASSWORD=${MAIL_PASSWORD}
-MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-tls}
-MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
-MAIL_FROM_NAME="${APP_NAME:-Mantra}"
-
-GEMINI_API_KEY=${GEMINI_API_KEY}
-VITE_APP_NAME="${APP_NAME:-Mantra}"
-EOF
-
-echo "==> .env generated — DB_HOST=${DB_HOST}, DB_DATABASE=${DB_DATABASE}"
-
-echo "==> Clearing config cache..."
+# Clear stale config cache
 php artisan config:clear
+php artisan cache:clear
 
+# Run migrations (non-fatal so server still starts even if DB has issues)
 echo "==> Running migrations..."
 php artisan migrate --force && echo "==> Migrations OK" || echo "==> WARNING: Migrations failed"
 
-echo "==> Starting server on port ${PORT:-8080}..."
-exec php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
+# Start server
+PORT="${PORT:-8080}"
+echo "==> Serving on port ${PORT}..."
+exec php artisan serve --host=0.0.0.0 --port="${PORT}"
